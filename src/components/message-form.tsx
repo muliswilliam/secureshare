@@ -71,14 +71,14 @@ export function MessageForm() {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute left-[-1px] focus-visible:none hover:bg-transparent"
+                      className="absolute left-[3px] top-[2px] focus-visible:none hover:bg-transparent"
                       onClick={handleButtonClick}
                     >
                       <Paperclip className="h-4 w-4" />
                     </Button>
                     <Textarea
                       placeholder="Type your message or attach a file here"
-                      className="px-8"
+                      className="pl-12 pt-2"
                       {...field}
                     />
                   </div>
