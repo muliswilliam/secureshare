@@ -4,6 +4,8 @@ import MainLayout from '../layouts/main'
 import { MessageForm } from '@/components/message-form'
 
 export default function Home() {
+  console.log('Testing vercel branch deployment')
+
   return (
     <MainLayout>
       <Head>
