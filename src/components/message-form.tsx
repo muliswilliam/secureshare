@@ -55,7 +55,7 @@ export function MessageForm() {
 
   return (
     <>
-      <h1 className="text-xl lg:text-2xl xl:text-3xl text-left py-8">
+      <h1 className="text-xl lg:text-2xl xl:text-3xl text-left py-4 md:py-8 font-bold">
         Your secret message
       </h1>
       <Form {...form}>

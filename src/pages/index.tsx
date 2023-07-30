@@ -12,10 +12,10 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="flex flex-col w-full h-[calc(100vh-4rem)] lg:flex-row">
-        <div className="flex justify-end order-2 w-full lg:order-1 lg:w-[50%]">
-          <div className="flex flex-col w-[100%] justify-start pt-8 pl-12 pr-8 lg:border-r 2xl:max-w-[754px]">
-            <h1 className="text-left text-[36px]/8 my-8">What we do</h1>
+      <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
+        <div className="flex justify-end order-2 w-full md:order-1">
+          <div className="flex flex-col justify-start p-4 md:p-8 lg:p-12 lg:border-r 2xl:max-w-[754px]">
+            <h1 className="text-left text-xl lg:text-2xl xl:text-3xl py-4 md:py-8 font-bold">What we do</h1>
             <p className="text-md mb-6 font-light">
               Send secrets instantly and securely.
             </p>
@@ -52,8 +52,8 @@ export default function Home() {
             </ul>
           </div>
         </div>
-        <div className="flex order-1 w-full lg:order-1 lg:w-[50%]">
-          <div className="flex flex-col w-[100%] justify-start pt-8 pl-12 pr-8 2xl:max-w-[754px]">
+        <div className="flex order-1 md:order-1 w-full">
+          <div className="flex flex-col w-[100%] justify-start p-4 md:p-8 lg:p-12 2xl:max-w-[754px]">
             <MessageForm />
           </div>
         </div>

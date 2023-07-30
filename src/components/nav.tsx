@@ -9,7 +9,7 @@ function MenuItem({ label, href }: { label: string; href: string }) {
   return (
     <Link
       href={href}
-      className="text-sm font-medium transition-colors hover:text-primary"
+      className="text-sm font-medium transition-colors hover:text-primary whitespace-nowrap"
     >
       {label}
     </Link>
@@ -33,17 +33,17 @@ export function MainNav({
           <div className="flex">
             <nav
               className={cn(
-                'flex items-center space-x-4 lg:space-x-6',
+                'hidden md:flex items-center space-x-4 lg:space-x-6',
                 className
               )}
               {...props}
             >
               <MenuItem label="Encrypted Chat" href="/encrypted-chat" />
             </nav>
-            <Button asChild variant="ghost">
+            <Button asChild variant="ghost" className='whitespace-nowrap'>
               <Link href="/login">Login</Link>
             </Button>
-            <Button asChild className="mr-6">
+            <Button asChild className="mr-6 whitespace-nowrap">
               <Link href="/sign-up">Sign Up</Link>
             </Button>
             <ModeToggle />
