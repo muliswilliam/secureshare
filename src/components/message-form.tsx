@@ -14,6 +14,11 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Paperclip, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import RandomGenerator from '../shared/random-generator'
+import Keychain from '../shared/keychain'
+import { uint8ArrayToBase64UrlSafe } from '../shared/utils'
+import { decryptText, encryptText } from '../shared/encrypt-decrypt-text'
+import { EncryptionDetails } from '../shared/types'
 
 const fileSchema =
   typeof File !== 'undefined' ? z.instanceof(File).optional() : z.any()
@@ -49,8 +54,22 @@ export function MessageForm() {
     inputRef.current?.click()
   }, [inputRef])
 
-  const onSubmit = React.useCallback((values: z.infer<typeof formSchema>) => {
-    console.log(values)
+  const onSubmit = React.useCallback(async (values: z.infer<typeof formSchema>) => {
+    const encryptionKey = RandomGenerator.generateRandomBytes(Keychain.KEY_LENGTH_IN_BYTES)
+    const encryptedData = await encryptText(values.message || '', encryptionKey)
+    const decryptedData = await decryptText(encryptedData, encryptionKey)
+    const secretKey = uint8ArrayToBase64UrlSafe(encryptionKey)
+    console.log(values.message === decryptedData)
+    console.log(secretKey)
+    const encryptionDetails: EncryptionDetails = {
+      version: 1,
+      cipher: Keychain.ALGORITHM.split('-')[0],
+      mode: Keychain.ALGORITHM.split('-')[1],
+      tagLength: Keychain.TAG_LENGTH_IN_BYTES * 8,
+      ct: encryptedData
+    }
+
+    console.log(encryptionDetails)
   }, [])
 
   return (
