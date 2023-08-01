@@ -16,7 +16,7 @@ import { Paperclip, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import RandomGenerator from '../shared/random-generator'
 import Keychain from '../shared/keychain'
-import { uint8ArrayToBase64UrlSafe } from '../shared/utils'
+import { addTimeToDate, uint8ArrayToBase64UrlSafe } from '../shared/utils'
 import { decryptText, encryptText } from '../shared/encrypt-decrypt-text'
 import { EncryptionDetails } from '../shared/types'
 
@@ -69,7 +69,15 @@ export function MessageForm() {
       ct: encryptedData
     }
 
-    console.log(encryptionDetails)
+    const response = await fetch('/api/msg/new', {
+      method: 'POST',
+      body: JSON.stringify({
+        encryptionDetails: JSON.stringify(encryptionDetails), 
+        expiresAt: addTimeToDate(1, values.autoDeletePeriod)
+      }),
+    })
+    const data = await response.json()
+    console.log(data)
   }, [])
 
   return (

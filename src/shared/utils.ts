@@ -1,3 +1,5 @@
+import { addDays, addWeeks, addMonths } from 'date-fns'
+
 /**
  * Converts a Uint8Array to a Base64 URL-safe string
  */
@@ -46,4 +48,23 @@ export function base64UrlSafeToUint8Array(
 
   // Return a Uint8Array created from the array of character codes
   return new Uint8Array(array)
+}
+
+// Function to add days, weeks, or months to the current timestamp
+export function addTimeToDate(
+  duration: number,
+  unit: 'day' | 'week' | 'month'
+): Date {
+  const currentDate = new Date()
+
+  switch (unit) {
+    case 'day':
+      return addDays(currentDate, duration)
+    case 'week':
+      return addWeeks(currentDate, duration)
+    case 'month':
+      return addMonths(currentDate, duration)
+    default:
+      throw new Error('Invalid unit. Use "day", "week", or "month".')
+  }
 }
