@@ -1,24 +1,27 @@
-import React from 'react'
-import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
+
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from '@/components/ui/form'
+import { Loader2, Paperclip, X } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Paperclip, X } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import RandomGenerator from '../shared/random-generator'
-import Keychain from '../shared/keychain'
 import { addTimeToDate, uint8ArrayToBase64UrlSafe } from '../shared/utils'
-import { decryptText, encryptText } from '../shared/encrypt-decrypt-text'
+
+import { Button } from '@/components/ui/button'
 import { EncryptionDetails } from '../shared/types'
+import Keychain from '../shared/keychain'
+import { Message } from '@prisma/client'
+import RandomGenerator from '../shared/random-generator'
+import React from 'react'
+import { Textarea } from '@/components/ui/textarea'
+import { encryptText } from '../shared/encrypt-decrypt-text'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 const fileSchema =
   typeof File !== 'undefined' ? z.instanceof(File).optional() : z.any()
@@ -27,16 +30,25 @@ const formSchema = z.object({
   message: z
     .string()
     .min(1, {
-      message: 'Message must be at least 1 character',
+      message: 'Message must be at least 1 character'
     })
     .or(z.literal(''))
     .optional(),
   file: fileSchema,
   autoDeletePeriod: z.enum(['day', 'week', 'month'], {
-    required_error: 'You need to select auto delete period',
-  }),
+    required_error: 'You need to select auto delete period'
+  })
 })
-export function MessageForm() {
+
+interface MessageFormProps {
+  // eslint-disable-next-line no-unused-vars
+  onSubmit?: (url: string) => void
+}
+
+export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
+  // state
+  const [submitting, setSubmitting] = React.useState<boolean>(false)
+
   // refs
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -45,8 +57,8 @@ export function MessageForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       message: '',
-      file: undefined,
-    },
+      file: undefined
+    }
   })
 
   // methods
@@ -54,31 +66,47 @@ export function MessageForm() {
     inputRef.current?.click()
   }, [inputRef])
 
-  const onSubmit = React.useCallback(async (values: z.infer<typeof formSchema>) => {
-    const encryptionKey = RandomGenerator.generateRandomBytes(Keychain.KEY_LENGTH_IN_BYTES)
-    const encryptedData = await encryptText(values.message || '', encryptionKey)
-    const decryptedData = await decryptText(encryptedData, encryptionKey)
-    const secretKey = uint8ArrayToBase64UrlSafe(encryptionKey)
-    console.log(values.message === decryptedData)
-    console.log(secretKey)
-    const encryptionDetails: EncryptionDetails = {
-      version: 1,
-      cipher: Keychain.ALGORITHM.split('-')[0],
-      mode: Keychain.ALGORITHM.split('-')[1],
-      tagLength: Keychain.TAG_LENGTH_IN_BYTES * 8,
-      ct: encryptedData
-    }
+  const onSubmit = React.useCallback(
+    async (values: z.infer<typeof formSchema>) => {
+      try {
+        setSubmitting(true)
+        const encryptionKey = RandomGenerator.generateRandomBytes(
+          Keychain.KEY_LENGTH_IN_BYTES
+        )
+        const encryptedData = await encryptText(
+          values.message || '',
+          encryptionKey
+        )
+        const secretKey = uint8ArrayToBase64UrlSafe(encryptionKey)
+        const encryptionDetails: EncryptionDetails = {
+          version: 1,
+          cipher: Keychain.ALGORITHM.split('-')[0],
+          mode: Keychain.ALGORITHM.split('-')[1],
+          tagLength: Keychain.TAG_LENGTH_IN_BYTES * 8,
+          ct: encryptedData
+        }
 
-    const response = await fetch('/api/msg/new', {
-      method: 'POST',
-      body: JSON.stringify({
-        encryptionDetails: JSON.stringify(encryptionDetails), 
-        expiresAt: addTimeToDate(1, values.autoDeletePeriod)
-      }),
-    })
-    const data = await response.json()
-    console.log(data)
-  }, [])
+        const response = await fetch('/api/msg/new', {
+          method: 'POST',
+          body: JSON.stringify({
+            encryptionDetails: JSON.stringify(encryptionDetails),
+            expiresAt: addTimeToDate(1, values.autoDeletePeriod)
+          })
+        })
+        const msg: Message = await response.json()
+        const publicId = msg.publicId
+        const url = `${window.location.origin}/${publicId}#${secretKey}`
+        if (onFormSubmit) {
+          onFormSubmit(url)
+        }
+        setSubmitting(false)
+      } catch (error) {
+        setSubmitting(false)
+        console.error(error)
+      }
+    },
+    [onFormSubmit]
+  )
 
   return (
     <>
@@ -189,6 +217,7 @@ export function MessageForm() {
             )}
           />
           <Button type="submit" className="mt-10 w-full" size="lg">
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Encrypt Message
           </Button>
         </form>
