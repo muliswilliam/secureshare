@@ -41,6 +41,7 @@ export default async function handler(
         notifyOnOpen: true,
       },
     })
+    // TODO: if logged in user, record msg_creation event
     res.status(200).json(result)
   } catch (error) {
     console.log(error)

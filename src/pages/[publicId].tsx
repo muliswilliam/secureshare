@@ -41,7 +41,7 @@ export default function MessagePage({ message }: MessageProps) {
   React.useEffect(() => {
     if (message === null || secretkey === undefined) {
       setError(
-        'Unable to decrypt your message. The link might expired or missing key details.'
+        'Unable to decrypt your message. The link might be expired or missing key details.'
       )
     } else {
       setError(undefined)
@@ -90,21 +90,30 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       publicId: params?.publicId as string
     }
   })
-  console.log('message', message)
-  if (message !== null) {
-    return {
-      props: {
-        message: {
-          ...message,
-          createdAt: message?.createdAt.toISOString(),
-          expiresAt: message?.expiresAt.toISOString()
-        }
-      }
-    }
-  } else {
+
+  if (message === null) {
     return {
       props: {
         message: null
+      }
+    }
+  }
+
+  // destroy the message
+  await prisma.message.delete({
+    where: {
+      id: message.id
+    }
+  })
+
+  // TODO: Notify user that message was viewed
+
+  return {
+    props: {
+      message: {
+        ...message,
+        createdAt: message?.createdAt.toISOString(),
+        expiresAt: message?.expiresAt.toISOString()
       }
     }
   }
