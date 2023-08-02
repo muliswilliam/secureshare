@@ -18,7 +18,9 @@ interface MessageProps {
 export default function MessagePage({ message }: MessageProps) {
   const [isClient, setIsClient] = React.useState(false)
   const [secretkey, setSecretKey] = React.useState<string | undefined>()
-  const [decryptedMessage, setDecryptedMessage] = React.useState<string | undefined>()
+  const [decryptedMessage, setDecryptedMessage] = React.useState<
+    string | undefined
+  >()
   const [error, setError] = React.useState<string | undefined>()
   const [dialogOpen, setDialogOpen] = React.useState<boolean>(true)
   const router = useRouter()
@@ -27,7 +29,7 @@ export default function MessagePage({ message }: MessageProps) {
   React.useEffect(() => {
     setIsClient(true)
 
-  if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       setSecretKey(window.location.hash.substring(1))
     }
   }, [])
@@ -37,35 +39,40 @@ export default function MessagePage({ message }: MessageProps) {
   }, [buttonRef])
 
   React.useEffect(() => {
-    if (!message || !secretkey)
-      return setError(
+    if (message === null || secretkey === undefined) {
+      setError(
         'Unable to decrypt your message. The link might expired or missing key details.'
       )
-    const decrypt = async () => {
-      try {
-        const encryptionKey = base64UrlSafeToUint8Array(secretkey)
-        const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
-        const text = await decryptText(encryptionDetails.ct, encryptionKey)
-        setDecryptedMessage(text)        
-      } catch (error) {
-        setError('Something went wrong decrypting you message. Please try again later.')
-        console.error(error)
+    } else {
+      setError(undefined)
+      const decrypt = async () => {
+        try {
+          const encryptionKey = base64UrlSafeToUint8Array(secretkey)
+          const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
+          const text = await decryptText(encryptionDetails.ct, encryptionKey)
+          setDecryptedMessage(text)
+        } catch (error) {
+          setError(
+            'Something went wrong decrypting you message. Please try again later.'
+          )
+          console.error(error)
+        }
       }
+      decrypt()
     }
-    decrypt()
   }, [message, secretkey])
 
   if (router.isFallback) return <div>Loading....</div>
 
-  console.log(error)
   return (
     <MainLayout>
       <HomeContent>
         <MessageForm />
       </HomeContent>
-      {isClient && message && (
+      {isClient && (
         <DecryptDialog
           message={decryptedMessage || ''}
+          error={error}
           open={dialogOpen}
           onClose={() => {
             setDialogOpen(false)
@@ -83,13 +90,21 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       publicId: params?.publicId as string
     }
   })
-  console.log(message)
-  return {
-    props: {
-      message: {
-        ...message,
-        createdAt: message?.createdAt.toISOString(),
-        expiresAt: message?.expiresAt.toISOString()
+  console.log('message', message)
+  if (message !== null) {
+    return {
+      props: {
+        message: {
+          ...message,
+          createdAt: message?.createdAt.toISOString(),
+          expiresAt: message?.expiresAt.toISOString()
+        }
+      }
+    }
+  } else {
+    return {
+      props: {
+        message: null
       }
     }
   }

@@ -9,14 +9,16 @@ import {
 import { Button } from './ui/button'
 import React from 'react'
 import { Textarea } from './ui/textarea'
+import { cn } from '../lib/utils'
 
 interface MessageProps {
   message: string
   open: boolean
+  error?: string
   onClose: () => void
 }
 
-export function DecryptDialog({ message, open, onClose }: MessageProps) {
+export function DecryptDialog({ message, open, error, onClose }: MessageProps) {
   // methods
   const onCopy = React.useCallback(async () => {
     await navigator.clipboard.writeText(message)
@@ -26,21 +28,31 @@ export function DecryptDialog({ message, open, onClose }: MessageProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Here you go!</DialogTitle>
-          <DialogDescription className="py-2 text-primary">
-            Copy and paste the encrypted link below within the body of your
-            e-mail or instant message
+          <DialogTitle>
+            {error ? 'Something went wrong' : 'Here you go!'}
+          </DialogTitle>
+          <DialogDescription
+            className={cn('py-2', error ? 'text-red-400' : 'text-primary')}
+          >
+            {error
+              ? error
+              : `SecureShare link self destruct and you can only use it once. So, make sure to copy it.`}
           </DialogDescription>
         </DialogHeader>
-        <Textarea
-          className="text-sm h-[180px]"
-          value={message}
-        />
-        <div className='flex gap-2'>
-          <Button className='w-full' variant="secondary" onClick={onCopy}>
-            Copy
-          </Button>
-        </div>
+        {!error && (
+          <>
+            <Textarea
+              className="text-sm h-[180px]"
+              value={message}
+              readOnly={true}
+            />
+            <div className="flex gap-2">
+              <Button className="w-full" variant="secondary" onClick={onCopy}>
+                Copy
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )
