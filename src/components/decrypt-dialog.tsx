@@ -44,6 +44,7 @@ export function DecryptDialog({ message, open, error, onClose }: MessageProps) {
             <Textarea
               className="text-sm h-[180px]"
               value={message}
+              onChange={() => {}}
               readOnly={true}
             />
             <div className="flex gap-2">

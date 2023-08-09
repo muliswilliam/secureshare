@@ -1,5 +1,21 @@
+import React from 'react'
 import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2, Paperclip, X } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import axios, { AxiosProgressEvent } from 'axios'
 
+// types
+import { EncryptionDetails } from '../shared/types'
+import { Message } from '@prisma/client'
+
+// utils
+import { encryptFile, encryptText } from '../shared/encrypt-decrypt'
+import { addTimeToDate, uint8ArrayToBase64UrlSafe } from '../shared/utils'
+import Keychain from '../shared/keychain'
+import RandomGenerator from '../shared/random-generator'
+
+// components
 import {
   Form,
   FormControl,
@@ -8,20 +24,18 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Loader2, Paperclip, X } from 'lucide-react'
+import { Progress } from "@/components/ui/progress"
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { addTimeToDate, uint8ArrayToBase64UrlSafe } from '../shared/utils'
-
 import { Button } from '@/components/ui/button'
-import { EncryptionDetails } from '../shared/types'
-import Keychain from '../shared/keychain'
-import { Message } from '@prisma/client'
-import RandomGenerator from '../shared/random-generator'
-import React from 'react'
 import { Textarea } from '@/components/ui/textarea'
-import { encryptFile, encryptText } from '../shared/encrypt-decrypt'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+
 
 const fileSchema =
   typeof File !== 'undefined' ? z.instanceof(File).optional() : z.any()
@@ -50,6 +64,7 @@ interface MessageFormProps {
 export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
   // state
   const [submitting, setSubmitting] = React.useState<boolean>(false)
+  const [progress, setProgress] = React.useState(13)
 
   // refs
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -89,11 +104,14 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
           const { encryptedFile, iv } = await encryptFile(file, encryptionKey)
           const formData = new FormData()
           formData.append('file', encryptedFile)
-          const uploadResponse = await fetch('/api/files/upload', {
-            method: 'POST',
-            body: formData
+          const { data } = await axios.post('/api/files/upload', formData, {
+            onUploadProgress: (progressEvent: AxiosProgressEvent) =>  {
+              if (progressEvent.progress) {
+                setProgress(progressEvent.progress * 100)
+              }
+            },
           })
-          const { url, completed } = await uploadResponse.json()
+          const { url, completed } = data
           encryptionDetails.ct = iv
           encryptionDetails.fileHandle = {
             completed,
@@ -101,11 +119,10 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
             url
           }
         } else if (values.message) {
-          const encryptedText = await encryptText(
-            values.message || '',
-            encryptionKey
-          )
+          setProgress(50)
+          const encryptedText = await encryptText(values.message, encryptionKey)
           encryptionDetails.ct = encryptedText
+          setProgress(100)
         }
 
         const response = await fetch('/api/msg/new', {
@@ -118,6 +135,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         const msg: Message = await response.json()
         const publicId = msg.publicId
         const url = `${window.location.origin}/${publicId}#${secretKey}`
+        form.reset()
         if (onFormSubmit) {
           onFormSubmit(url)
         }
@@ -127,7 +145,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         console.error(error)
       }
     },
-    [onFormSubmit]
+    [onFormSubmit, form]
   )
 
   return (
@@ -260,6 +278,19 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
           </Button>
         </form>
       </Form>
+
+      {/* Encrypting dialog */}
+      {submitting &&
+        <Dialog open={true} onOpenChange={() => {}} >
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Encrypting your data!</DialogTitle>
+              <DialogDescription className="py-2 text-primary"></DialogDescription>
+            </DialogHeader>
+            <Progress value={progress} />
+          </DialogContent>
+        </Dialog>
+      }
     </>
   )
 }

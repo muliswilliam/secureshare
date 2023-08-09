@@ -40,6 +40,7 @@ export function MessageDialog({ open, url, onClose }: MessageProps) {
         <Textarea
           className="text-sm h-[110px]"
           value={message}
+          readOnly={true}
         />
         <div className='flex gap-2'>
           <Button variant="secondary" onClick={() => onCopy('message')}>

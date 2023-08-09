@@ -135,11 +135,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   }
 
   // destroy the message
-  // await prisma.message.delete({
-  //   where: {
-  //     id: message.id
-  //   }
-  // })
+  await prisma.message.delete({
+    where: {
+      id: message.id
+    }
+  })
 
   // TODO: Notify user that message was viewed
 
