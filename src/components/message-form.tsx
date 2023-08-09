@@ -97,6 +97,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
           encryptionDetails.ct = iv
           encryptionDetails.fileHandle = {
             completed,
+            fileName: file.name,
             url
           }
         } else if (values.message) {

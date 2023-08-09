@@ -72,14 +72,13 @@ export default function MessagePage({ message }: MessageProps) {
           const encryptionKey = base64UrlSafeToUint8Array(secretkey)
           const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
           if (encryptionDetails.fileHandle) {
-            console.log(encryptionDetails.fileHandle.url)
-            const response = await fetch(encryptionDetails.fileHandle.url)
+            const { url, fileName} = encryptionDetails.fileHandle
+            const response = await fetch(url)
             const encryptedFile = await response.blob()
             if(encryptedFile) {
               const blob = await decryptFile(encryptedFile, encryptionDetails.ct, encryptionKey)
-              const fileName = encryptionDetails.fileHandle.url.replace('.enc', '').substring(33) // hex 32 chars + -
-              // downloadBlob(blob, fileName)
-              
+              downloadBlob(blob, fileName)
+
             } else {
               setError('File not found')
             }

@@ -9,7 +9,8 @@ export interface EncryptionDetails {
   /** Cryptographic algorithm used */
   cipher: string,
   fileHandle?: {
-    completed: boolean,
-    url: string,
+    completed: boolean
+    fileName: string
+    url: string
   }
 }
