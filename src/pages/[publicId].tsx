@@ -7,7 +7,7 @@ import { Message } from '@prisma/client'
 import { MessageForm } from '../components/message-form'
 import React from 'react'
 import { base64UrlSafeToUint8Array } from '../shared/utils'
-import { decryptText } from '../shared/encrypt-decrypt-text'
+import { decryptFile, decryptText } from '../shared/encrypt-decrypt'
 import prisma from '../lib/prisma'
 import { useRouter } from 'next/router'
 
@@ -38,6 +38,28 @@ export default function MessagePage({ message }: MessageProps) {
     buttonRef.current?.click()
   }, [buttonRef])
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    // Create a temporary anchor element
+    const a = document.createElement('a');
+
+    // Create a blob URL
+    const url = window.URL.createObjectURL(blob);
+
+    // Set the download attributes on the anchor
+    a.href = url;
+    a.download = filename;
+
+    // Add the anchor to the document to support Firefox
+    document.body.appendChild(a);
+
+    // Trigger a click event on the anchor to start the download
+    a.click();
+
+    // Clean up
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
   React.useEffect(() => {
     if (message === null || secretkey === undefined) {
       setError(
@@ -49,8 +71,22 @@ export default function MessagePage({ message }: MessageProps) {
         try {
           const encryptionKey = base64UrlSafeToUint8Array(secretkey)
           const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
-          const text = await decryptText(encryptionDetails.ct, encryptionKey)
-          setDecryptedMessage(text)
+          if (encryptionDetails.fileHandle) {
+            console.log(encryptionDetails.fileHandle.url)
+            const response = await fetch(encryptionDetails.fileHandle.url)
+            const encryptedFile = await response.blob()
+            if(encryptedFile) {
+              const blob = await decryptFile(encryptedFile, encryptionDetails.ct, encryptionKey)
+              const fileName = encryptionDetails.fileHandle.url.replace('.enc', '').substring(33) // hex 32 chars + -
+              // downloadBlob(blob, fileName)
+              
+            } else {
+              setError('File not found')
+            }
+          } else {
+            const text = await decryptText(encryptionDetails.ct, encryptionKey)
+            setDecryptedMessage(text)
+          }
         } catch (error) {
           setError(
             'Something went wrong decrypting you message. Please try again later.'
@@ -100,11 +136,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   }
 
   // destroy the message
-  await prisma.message.delete({
-    where: {
-      id: message.id
-    }
-  })
+  // await prisma.message.delete({
+  //   where: {
+  //     id: message.id
+  //   }
+  // })
 
   // TODO: Notify user that message was viewed
 

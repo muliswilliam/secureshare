@@ -7,5 +7,9 @@ export interface EncryptionDetails {
   /** Output of encryption process text */
   ct: string
   /** Cryptographic algorithm used */
-  cipher: string
+  cipher: string,
+  fileHandle?: {
+    completed: boolean,
+    url: string,
+  }
 }

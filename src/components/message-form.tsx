@@ -19,12 +19,14 @@ import { Message } from '@prisma/client'
 import RandomGenerator from '../shared/random-generator'
 import React from 'react'
 import { Textarea } from '@/components/ui/textarea'
-import { encryptText } from '../shared/encrypt-decrypt-text'
+import { encryptFile, encryptText } from '../shared/encrypt-decrypt'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 const fileSchema =
   typeof File !== 'undefined' ? z.instanceof(File).optional() : z.any()
+
+const MAX_FILE_SIZE = 10000000
 
 const formSchema = z.object({
   message: z
@@ -73,17 +75,36 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         const encryptionKey = RandomGenerator.generateRandomBytes(
           Keychain.KEY_LENGTH_IN_BYTES
         )
-        const encryptedData = await encryptText(
-          values.message || '',
-          encryptionKey
-        )
         const secretKey = uint8ArrayToBase64UrlSafe(encryptionKey)
         const encryptionDetails: EncryptionDetails = {
           version: 1,
           cipher: Keychain.ALGORITHM.split('-')[0],
           mode: Keychain.ALGORITHM.split('-')[1],
           tagLength: Keychain.TAG_LENGTH_IN_BYTES * 8,
-          ct: encryptedData
+          ct: ''
+        }
+
+        if (values.file) {
+          const file: File = values.file
+          const { encryptedFile, iv } = await encryptFile(file, encryptionKey)
+          const formData = new FormData()
+          formData.append('file', encryptedFile)
+          const uploadResponse = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: formData
+          })
+          const { url, completed } = await uploadResponse.json()
+          encryptionDetails.ct = iv
+          encryptionDetails.fileHandle = {
+            completed,
+            url
+          }
+        } else if (values.message) {
+          const encryptedText = await encryptText(
+            values.message || '',
+            encryptionKey
+          )
+          encryptionDetails.ct = encryptedText
         }
 
         const response = await fetch('/api/msg/new', {
@@ -151,8 +172,19 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
                   type="file"
                   className="hidden"
                   onChange={(e) => {
+                    form.resetField('file')
                     if (e.target.files?.length) {
-                      form.setValue('file', e.target.files[0])
+                      const file = e.target.files[0]
+                      if (file.size < MAX_FILE_SIZE) {
+                        form.clearErrors('file')
+                        form.setValue('file', file)
+                      } else {
+                        form.setError(
+                          'file',
+                          { message: 'Maximum allowed file size is 10Mb' },
+                          { shouldFocus: true }
+                        )
+                      }
                     }
                   }}
                   ref={inputRef}
@@ -172,6 +204,11 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
                         <X className="w-4 h-4" />
                       </Button>
                     </>
+                  )}
+                  {form.formState.errors.file && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.file.message?.toString()}
+                    </p>
                   )}
                 </div>
               </div>
