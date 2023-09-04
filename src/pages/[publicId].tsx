@@ -1,4 +1,4 @@
-import { DecryptDialog } from '../components/decrypt-dialog'
+import { TextMessageDialog } from '../components/text-message-dialog'
 import { EncryptionDetails } from '../shared/types'
 import { GetServerSideProps } from 'next'
 import { HomeContent } from '../components/home-content'
@@ -10,22 +10,41 @@ import { base64UrlSafeToUint8Array } from '../shared/utils'
 import { decryptFile, decryptText } from '../shared/encrypt-decrypt'
 import prisma from '../lib/prisma'
 import { useRouter } from 'next/router'
+import { FileDownloadDialog } from '../components/file-download-dialog'
+import { CounterDialog } from '../components/counter-dialog'
+import { ErrorDialog } from '../components/error-dialog'
 
 interface MessageProps {
   message: Message | null
 }
 
 export default function MessagePage({ message }: MessageProps) {
+  // state
   const [isClient, setIsClient] = React.useState(false)
   const [secretkey, setSecretKey] = React.useState<string | undefined>()
   const [decryptedMessage, setDecryptedMessage] = React.useState<
     string | undefined
   >()
-  const [error, setError] = React.useState<string | undefined>()
-  const [dialogOpen, setDialogOpen] = React.useState<boolean>(true)
+  const [showErrorDialog, setShowErrorDialog] = React.useState<boolean>(false)
+  const [counterDialogOpen, setCounterDialogOpen] = React.useState<boolean>(true)
+  const [messageDialogOpen, setMessageDialogOpen] = React.useState<boolean>(false)
+  const [messageType, setMessageType] = React.useState<'text' | 'file'>()
+  const [decryptedFile, setDecryptedFile] = React.useState<Blob>()
+  const [fileName, setFileName] = React.useState<string>()
+
+  // routing
   const router = useRouter()
+
+  // refs
   const buttonRef = React.useRef<HTMLButtonElement>(null)
 
+  // callbacks
+  const onClose = React.useCallback(() => {
+    setMessageDialogOpen(false)
+    router.push('/')
+  }, [router])
+
+  // effects
   React.useEffect(() => {
     setIsClient(true)
 
@@ -38,58 +57,35 @@ export default function MessagePage({ message }: MessageProps) {
     buttonRef.current?.click()
   }, [buttonRef])
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    // Create a temporary anchor element
-    const a = document.createElement('a');
-
-    // Create a blob URL
-    const url = window.URL.createObjectURL(blob);
-
-    // Set the download attributes on the anchor
-    a.href = url;
-    a.download = filename;
-
-    // Add the anchor to the document to support Firefox
-    document.body.appendChild(a);
-
-    // Trigger a click event on the anchor to start the download
-    a.click();
-
-    // Clean up
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-}
-
   React.useEffect(() => {
     if (message === null || secretkey === undefined) {
-      setError(
-        'Unable to decrypt your message. The link might be expired or missing key details.'
-      )
+      setShowErrorDialog(true)
     } else {
-      setError(undefined)
+      setShowErrorDialog(false)
       const decrypt = async () => {
         try {
           const encryptionKey = base64UrlSafeToUint8Array(secretkey)
           const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
           if (encryptionDetails.fileHandle) {
+            setMessageType('file')
             const { url, fileName} = encryptionDetails.fileHandle
             const response = await fetch(url)
             const encryptedFile = await response.blob()
             if(encryptedFile) {
               const blob = await decryptFile(encryptedFile, encryptionDetails.ct, encryptionKey)
-              downloadBlob(blob, fileName)
-
+              setDecryptedFile(blob)
+              setFileName(fileName)
             } else {
-              setError('File not found')
+              setShowErrorDialog(true)
+              console.error('File not found')
             }
           } else {
+            setMessageType('text')
             const text = await decryptText(encryptionDetails.ct, encryptionKey)
             setDecryptedMessage(text)
           }
         } catch (error) {
-          setError(
-            'Something went wrong decrypting you message. Please try again later.'
-          )
+          setShowErrorDialog(true)
           console.error(error)
         }
       }
@@ -105,15 +101,40 @@ export default function MessagePage({ message }: MessageProps) {
         <MessageForm />
       </HomeContent>
       {isClient && (
-        <DecryptDialog
-          message={decryptedMessage || ''}
-          error={error}
-          open={dialogOpen}
-          onClose={() => {
-            setDialogOpen(false)
-            router.push('/')
-          }}
-        />
+        <>
+          {message !== null ? (
+            <CounterDialog
+              open={counterDialogOpen}
+              onClose={() => {
+                setCounterDialogOpen(false)
+                setMessageDialogOpen(true)
+              }}
+            />
+          ) : (
+            <ErrorDialog
+              open={showErrorDialog}
+              onClose={() => setShowErrorDialog(false)}
+            />
+          )}
+          {messageType === 'text' ? (
+            <TextMessageDialog
+              message={decryptedMessage || ''}
+              open={messageDialogOpen}
+              onClose={onClose}
+            />
+          ) : (
+            <>
+              {fileName && decryptedFile && (
+                <FileDownloadDialog
+                  fileName={fileName}
+                  decryptedFile={decryptedFile}
+                  open={messageDialogOpen}
+                  onClose={onClose}
+                />
+              )}
+            </>
+          )}
+        </>
       )}
     </MainLayout>
   )
