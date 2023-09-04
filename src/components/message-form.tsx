@@ -74,7 +74,8 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       message: '',
-      file: undefined
+      file: undefined,
+      autoDeletePeriod: 'week'
     }
   })
 
