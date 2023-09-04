@@ -55,6 +55,6 @@ export default async function handler(
       res.status(200).json({ success: true, url: result.data.publicUrl })
     }
   } catch (error) {
-    res.status(400).json({ message: 'Parsing form failed', error })
+    res.status(400).json({ message: 'Error uploading file', error })
   }
 }
