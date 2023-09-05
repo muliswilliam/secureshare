@@ -26,8 +26,8 @@ export function TextMessageDialog({ message, open, onClose }: TextMessageProps) 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Here you go!</DialogTitle>
-          <DialogDescription className="text-primary">
+          <DialogTitle className='text-2xl'>Here you go!</DialogTitle>
+          <DialogDescription className="text-default py-3">
             SecureShare link self destruct and you can only use it once. So,
             make sure to copy it.
           </DialogDescription>
@@ -39,7 +39,7 @@ export function TextMessageDialog({ message, open, onClose }: TextMessageProps) 
           readOnly={true}
         />
         <div className="flex gap-2">
-          <Button className="w-full" variant="secondary" onClick={onCopy}>
+          <Button className="w-full" variant="default" onClick={onCopy}>
             Copy
           </Button>
         </div>

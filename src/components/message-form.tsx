@@ -135,7 +135,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         })
         const msg: Message = await response.json()
         const publicId = msg.publicId
-        const url = `${window.location.origin}/${publicId}#${secretKey}`
+        const url = `${window.location.origin}/messages/${publicId}#${secretKey}`
         form.reset()
         if (onFormSubmit) {
           onFormSubmit(url)

@@ -38,12 +38,12 @@ export function CounterDialog({ open, onClose }: CounterDialogProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogDescription className="text-primary text-lg">
+          <DialogDescription className="text-default text-lg">
             Your message will appear in
           </DialogDescription>
         </DialogHeader>
         <div className='flex flex-col justify-center items-center'>
-          <h1 className='text-9xl font-bold text-primary my-5'>{counter}</h1>
+          <h1 className='text-9xl font-bold text-default my-5'>{counter}</h1>
           <Button className='inline-block' onClick={onClose}>Show right away</Button>
         </div>
       </DialogContent>

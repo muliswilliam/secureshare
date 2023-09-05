@@ -13,7 +13,7 @@ export function ErrorDialog({ open, onClose }: TextMessageProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
-        <h1 className='text-primary font-semibold text-center text-2xl'>Invalid Link</h1>
+        <h1 className='font-semibold text-center text-2xl'>Invalid Link</h1>
         <div className='flex flex-col'>
           <p className='font-semibold text-center text-lg my-6 text-red-400'>We are sorry, you don&apos;t have access to this message.</p>
           <h3 className='font-semibold text-md mb-4'>It has either:</h3>

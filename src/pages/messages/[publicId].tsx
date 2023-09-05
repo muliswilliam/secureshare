@@ -1,18 +1,22 @@
-import { TextMessageDialog } from '../components/text-message-dialog'
-import { EncryptionDetails } from '../shared/types'
-import { GetServerSideProps } from 'next'
-import { HomeContent } from '../components/home-content'
-import MainLayout from '../layouts/main'
-import { Message } from '@prisma/client'
-import { MessageForm } from '../components/message-form'
 import React from 'react'
-import { base64UrlSafeToUint8Array } from '../shared/utils'
-import { decryptFile, decryptText } from '../shared/encrypt-decrypt'
-import prisma from '../lib/prisma'
 import { useRouter } from 'next/router'
-import { FileDownloadDialog } from '../components/file-download-dialog'
-import { CounterDialog } from '../components/counter-dialog'
-import { ErrorDialog } from '../components/error-dialog'
+import { GetServerSideProps } from 'next'
+import { Message } from '@prisma/client'
+
+// utils
+import { EncryptionDetails } from '../../shared/types'
+import { base64UrlSafeToUint8Array } from '../../shared/utils'
+import prisma from '../../lib/prisma'
+
+// components
+import { HomeContent } from '../../components/home-content'
+import MainLayout from '../../layouts/main'
+import { TextMessageDialog } from '../../components/text-message-dialog'
+import { MessageForm } from '../../components/message-form'
+import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
+import { FileDownloadDialog } from '../../components/file-download-dialog'
+import { CounterDialog } from '../../components/counter-dialog'
+import { ErrorDialog } from '../../components/error-dialog'
 
 interface MessageProps {
   message: Message | null

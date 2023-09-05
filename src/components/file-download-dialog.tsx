@@ -43,11 +43,11 @@ export function FileDownloadDialog({ fileName, decryptedFile, open, onClose }: F
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <div className='flex flex-col'>
-          <p className='text-md text-primary mb-4'>Your secret file:</p>
+          <p className='text-md text-default mb-4'>Your secret file:</p>
           <div className='flex flex-row h-9 items-center justify-between rounded-lg bg-muted p-6 text-muted-foreground'>
             <File size='16px'/>
             <p className='text-gray-400 text-md font-light overflow-hidden text-ellipsis whitespace-nowrap w-[200px]'>{fileName}</p>
-            <Button type='button' variant='ghost' className='text-primary' onClick={downloadFile}>Download</Button>
+            <Button type='button' variant='ghost' className='text-primary outline-none' onClick={downloadFile}>Download</Button>
           </div>
         </div>
       </DialogContent>

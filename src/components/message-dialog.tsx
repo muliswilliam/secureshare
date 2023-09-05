@@ -31,23 +31,23 @@ export function MessageDialog({ open, url, onClose }: MessageProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Here you go!</DialogTitle>
-          <DialogDescription className="py-2 text-primary">
+          <DialogTitle className='text-2xl'>Here you go!</DialogTitle>
+          <DialogDescription className="pt-4 text-default">
             Copy and paste the encrypted link below within the body of your
             e-mail or instant message
           </DialogDescription>
         </DialogHeader>
         <Textarea
-          className="text-sm h-[110px]"
+          className="text-sm h-[120px] my-4"
           value={message}
           readOnly={true}
         />
-        <div className='flex gap-2'>
-          <Button variant="secondary" onClick={() => onCopy('message')}>
-            Copy message
-          </Button>
-          <Button variant="secondary" onClick={() => onCopy('url')}>
+        <div className='flex justify-between'>
+          <Button variant="default" onClick={() => onCopy('url')}>
             Copy link
+          </Button>
+          <Button variant="default" onClick={() => onCopy('message')}>
+            Copy message
           </Button>
         </div>
       </DialogContent>
