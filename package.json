@@ -13,6 +13,7 @@
     "schema": "src/prisma/schema.prisma"
   },
   "dependencies": {
+    "@clerk/nextjs": "^4.23.4",
     "@hookform/resolvers": "^3.1.1",
     "@prisma/client": "^5.0.0",
     "@radix-ui/react-dialog": "^1.0.4",
