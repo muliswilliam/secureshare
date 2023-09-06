@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useClerk } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils'
 // components
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
-import { AuthDialog } from './auth-dialog'
 
 function MenuItem({ label, href }: { label: string; href: string }) {
   return (
@@ -26,11 +25,10 @@ export function MainNav({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = React.useState<boolean>(false)
-  const [isSignup, setIsSignup] = React.useState<boolean>(false)
 
   // hooks
-  const { userId, signOut } = useAuth()
+  const { userId } = useAuth()
+  const { signOut } = useClerk()
 
   return (
     <>
@@ -55,46 +53,26 @@ export function MainNav({
               </nav>
               {!userId ? (
                 <>
-                  <Button
-                    onClick={() => {
-                      setIsSignup(false)
-                      setIsAuthDialogOpen(true)
-                    }}
-                    variant="ghost"
-                    className="whitespace-nowrap"
-                  >
-                    Login
+                  <Button variant="ghost" className="whitespace-nowrap">
+                    <Link href="/sign-in">Login</Link>
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setIsSignup(true)
-                      setIsAuthDialogOpen(true)
-                    }}
-                    className="mr-6 whitespace-nowrap"
-                  >
-                    Sign Up
+                  <Button className="mr-6 whitespace-nowrap">
+                    <Link href="/sign-up">Sign Up</Link>
                   </Button>
                 </>
               ) : (
                 <Button
-                onClick={() => signOut}
-                className="mr-6 whitespace-nowrap"
-              >
-                Sign Out
-              </Button>
-
+                  onClick={() => signOut({})}
+                  className="mr-6 whitespace-nowrap"
+                >
+                  Sign Out
+                </Button>
               )}
               <ModeToggle />
             </div>
           </div>
         </div>
       </div>
-      <AuthDialog
-        open={isAuthDialogOpen}
-        isSignUp={isSignup}
-        toggleSignUp={() => setIsSignup((prev) => !prev)}
-        onClose={() => setIsAuthDialogOpen((prev) => !prev)}
-      />
     </>
   )
 }
