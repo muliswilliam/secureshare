@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
+import { getAuth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import prisma from '../../../lib/prisma'
 
@@ -31,10 +32,12 @@ export default async function handler(
         error: { message: 'Invalid request', errors },
       })
     }
+    const session = await getAuth(req)
     const { encryptionDetails, expiresAt } = response.data
     const publicId = crypto.randomBytes(16).toString('hex')
     const result = await prisma.message.create({
       data: {
+        userId: session?.userId,
         publicId,
         body: encryptionDetails,
         expiresAt: expiresAt,
