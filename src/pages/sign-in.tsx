@@ -11,7 +11,7 @@ export default function Page() {
         <SignIn
           routing="hash"
           appearance={{
-            baseTheme: theme === 'dark' ? dark : undefined,
+            baseTheme: (theme === 'system' || theme === 'light' ? undefined : dark)
           }}
         />
       </div>
