@@ -25,7 +25,7 @@ export default async function handler(
         error: { message: `Method ${method} Not Allowed` }
       })
     }
-    const response = schema.safeParse(JSON.parse(req.body))
+    const response = schema.safeParse(req.body)
 
     // If the request body is invalid, return a 400 error with the validation errors
     if (!response.success) {

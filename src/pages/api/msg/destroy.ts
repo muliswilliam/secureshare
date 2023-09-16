@@ -5,7 +5,7 @@ import { verifySignature } from '@upstash/qstash/dist/nextjs'
 // utils
 import prisma from '../../../lib/prisma'
 import { getClientInfo } from '@/shared/utils'
-import { EventType } from '@/shared/enums'
+import { EventType, MessageStatus } from '@/shared/enums'
 import { Prisma } from '@prisma/client'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -24,10 +24,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    const messages = await prisma.message.findMany({
-      where: expiredMessagesFilter
+    await prisma.message.updateMany({
+      where: expiredMessagesFilter,
+      data: {
+        status: MessageStatus.EXPIRED
+      }
     })
-    await prisma.message.deleteMany({
+
+    const messages = await prisma.message.findMany({
       where: expiredMessagesFilter
     })
 

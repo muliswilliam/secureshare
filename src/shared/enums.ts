@@ -5,3 +5,9 @@ export enum EventType {
   MessageViewed  = 'message_viewed',
   MessageExpired = 'message_expired',
 }
+
+export enum MessageStatus {
+  PENDING = 'pending',
+  SEEN = 'seen',
+  EXPIRED = 'expired'
+}

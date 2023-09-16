@@ -2,8 +2,11 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/components/theme-provider'
+import { dark } from '@clerk/themes'
+import React from 'react'
 
 export default function App({ Component, pageProps }: AppProps) {
+  
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ClerkProvider
@@ -11,10 +14,12 @@ export default function App({ Component, pageProps }: AppProps) {
         appearance={{
           layout: {
             logoPlacement: 'inside',
+            logoImageUrl: '/logo.png'
           },
           variables: {
-            colorPrimary: '#6C27D9',
-          }
+            colorPrimary: '#6C27D9'
+          },
+          baseTheme: dark
         }}
         {...pageProps}
       >

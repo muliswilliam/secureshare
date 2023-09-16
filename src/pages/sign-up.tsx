@@ -10,9 +10,6 @@ export default function Page() {
       <div className="flex flex-row items-center justify-center h-[calc(100vh-334px)]">
         <SignUp
           routing="hash"
-          appearance={{
-            baseTheme: (theme === 'system' || theme === 'light' ? undefined : dark)
-          }}
         />
       </div>
     </MainLayout>

@@ -8,7 +8,7 @@ import { getAuth } from '@clerk/nextjs/server'
 import { EncryptionDetails } from '../../shared/types'
 import { base64UrlSafeToUint8Array, getClientInfo } from '../../shared/utils'
 import prisma from '../../lib/prisma'
-import { EventType } from '../../shared/enums'
+import { EventType, MessageStatus } from '../../shared/enums'
 import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
 
 // components
@@ -149,7 +149,10 @@ export default function MessagePage({ message }: MessageProps) {
 export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
   const message = await prisma.message.findFirst({
     where: {
-      publicId: params?.publicId as string
+      publicId: params?.publicId as string,
+      status: {
+        equals: 'pending'
+      }
     }
   })
 
@@ -160,6 +163,16 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
       }
     }
   }
+
+  // update message status to seen
+  await prisma.message.update({
+    where: {
+      id: message.id
+    },
+    data: {
+      status: MessageStatus.SEEN
+    }
+  })
 
   // log message_viewed
   const session = getAuth(req)
@@ -174,13 +187,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
       eventType: EventType.MessageViewed,
       timestamp: new Date().toISOString(),
       eventData: messageViewedEvent as Prisma.JsonObject
-    }
-  })
-
-  // destroy the message
-  await prisma.message.delete({
-    where: {
-      id: message.id
     }
   })
 

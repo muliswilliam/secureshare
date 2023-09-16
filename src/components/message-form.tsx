@@ -64,7 +64,8 @@ interface MessageFormProps {
 export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
   // state
   const [submitting, setSubmitting] = React.useState<boolean>(false)
-  const [progress, setProgress] = React.useState(13)
+  const [progress, setProgress] = React.useState(0)
+  const [status, setStatus] = React.useState<string>('')
 
   // refs
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -84,6 +85,13 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
     inputRef.current?.click()
   }, [inputRef])
 
+  const axiosProgressCallback = (progressEvent: AxiosProgressEvent) =>  {
+    if (progressEvent.progress && progressEvent.total) {
+      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+      setProgress(percentCompleted)
+    }
+  }
+
   const onSubmit = React.useCallback(
     async (values: z.infer<typeof formSchema>) => {
       try {
@@ -101,16 +109,15 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         }
 
         if (values.file) {
+          setStatus('Encrypting file...')
           const file: File = values.file
           const { encryptedFile, iv } = await encryptFile(file, encryptionKey)
           const formData = new FormData()
           formData.append('file', encryptedFile)
+          setStatus('File encrypted successfully...')
+          setStatus('Uploading encrypted file....')
           const { data } = await axios.post('/api/files/upload', formData, {
-            onUploadProgress: (progressEvent: AxiosProgressEvent) =>  {
-              if (progressEvent.progress) {
-                setProgress(progressEvent.progress * 100)
-              }
-            },
+            onUploadProgress: axiosProgressCallback
           })
           const { url, completed } = data
           encryptionDetails.ct = iv
@@ -120,22 +127,26 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
             url
           }
         } else if (values.message) {
-          setProgress(50)
+          setStatus('Encrypting message...')
           const encryptedText = await encryptText(values.message, encryptionKey)
           encryptionDetails.ct = encryptedText
-          setProgress(100)
+          setStatus('Message encrypted successfully...')
         }
 
-        const response = await fetch('/api/msg/new', {
-          method: 'POST',
-          body: JSON.stringify({
+        setStatus('Creating SecureShare link...')
+        setProgress(0)
+        const { data: msg } = await axios.post<Message>(
+          '/api/msg/new',
+          {
             encryptionDetails: JSON.stringify(encryptionDetails),
             expiresAt: addTimeToDate(1, values.autoDeletePeriod)
-          })
-        })
-        const msg: Message = await response.json()
+          },
+          { onUploadProgress: axiosProgressCallback }
+        )
+        console.log(msg)
         const publicId = msg.publicId
         const url = `${window.location.origin}/messages/${publicId}#${secretKey}`
+        setStatus('SecureShare link is ready!')
         form.reset()
         if (onFormSubmit) {
           onFormSubmit(url)
@@ -286,7 +297,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Encrypting your data!</DialogTitle>
-              <DialogDescription className="py-2 text-primary"></DialogDescription>
+              <DialogDescription className="py-2 text-primary">{status}</DialogDescription>
             </DialogHeader>
             <Progress value={progress} />
           </DialogContent>

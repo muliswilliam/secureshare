@@ -1,7 +1,9 @@
 import React from 'react'
-import { useAuth, useClerk } from '@clerk/nextjs'
+import { UserButton, useAuth, useClerk } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTheme } from 'next-themes'
+import { dark } from '@clerk/themes'
 
 // utils
 import { cn } from '@/lib/utils'
@@ -25,22 +27,24 @@ export function MainNav({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
+  const { theme } = useTheme()
 
   // hooks
   const { userId } = useAuth()
-  const { signOut } = useClerk()
 
   return (
     <>
       <div className="flex-col md:flex">
         <div className="border-b">
-          <div className="flex h-16 items-center justify-between px-1 px:md-4">
-            <Image
-              src="vercel.svg"
-              alt="Secure share logo"
-              width={60}
-              height={60}
-            />
+          <div className="flex h-16 items-center justify-between px-4 px:md-4">
+            <Link href="/">
+              <img
+                src="/logo.png"
+                alt="Secure share logo"
+                width={40}
+                height='auto'
+              />
+            </Link>
             <div className="flex">
               <nav
                 className={cn(
@@ -48,25 +52,21 @@ export function MainNav({
                   className
                 )}
                 {...props}
-              >
-                <MenuItem label="Encrypted Chat" href="/encrypted-chat" />
-              </nav>
+              ></nav>
               {!userId ? (
-                <>
+                <div className="flex gap-4">
                   <Button variant="ghost" className="whitespace-nowrap">
                     <Link href="/sign-in">Login</Link>
                   </Button>
+
                   <Button className="mr-6 whitespace-nowrap">
                     <Link href="/sign-up">Sign Up</Link>
                   </Button>
-                </>
+                </div>
               ) : (
-                <Button
-                  onClick={() => signOut({})}
-                  className="mr-6 whitespace-nowrap"
-                >
-                  Sign Out
-                </Button>
+                <div className="mx-4">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
               )}
               <ModeToggle />
             </div>

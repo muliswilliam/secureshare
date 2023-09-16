@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
@@ -19,15 +19,29 @@ model Message {
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   notifyOnOpen Boolean
+  status       String @default("pending")
+  note         String?
+  expired      Boolean?
 
   @@index([userId, publicId])
 }
 
 model Event {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   eventType String
-  eventData  Json
-  timestamp  DateTime
+  eventData Json
+  timestamp DateTime
 
   @@index([timestamp])
+}
+
+model User {
+  id         String @id
+  first_name String
+  last_name  String
+  email      String @unique
+  created_at DateTime @default(now())
+  updated_at DateTime?
+
+  @@index([id, email])
 }
