@@ -14,3 +14,14 @@ export interface EncryptionDetails {
     url: string
   }
 }
+
+export interface ClientInfo {
+  ipAddress: string
+  userAgent: string
+  language: string
+}
+
+export interface MessageCreatedEvent extends ClientInfo {
+  userId?: string,
+  publicId: string
+}

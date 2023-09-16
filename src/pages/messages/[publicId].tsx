@@ -1,19 +1,21 @@
 import React from 'react'
 import { useRouter } from 'next/router'
 import { GetServerSideProps } from 'next'
-import { Message } from '@prisma/client'
+import { Message, Prisma } from '@prisma/client'
+import { getAuth } from '@clerk/nextjs/server'
 
 // utils
 import { EncryptionDetails } from '../../shared/types'
-import { base64UrlSafeToUint8Array } from '../../shared/utils'
+import { base64UrlSafeToUint8Array, getClientInfo } from '../../shared/utils'
 import prisma from '../../lib/prisma'
+import { EventType } from '../../shared/enums'
+import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
 
 // components
 import { HomeContent } from '../../components/home-content'
 import MainLayout from '../../layouts/main'
 import { TextMessageDialog } from '../../components/text-message-dialog'
 import { MessageForm } from '../../components/message-form'
-import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
 import { FileDownloadDialog } from '../../components/file-download-dialog'
 import { CounterDialog } from '../../components/counter-dialog'
 import { ErrorDialog } from '../../components/error-dialog'
@@ -72,10 +74,10 @@ export default function MessagePage({ message }: MessageProps) {
           const encryptionDetails: EncryptionDetails = JSON.parse(message.body)
           if (encryptionDetails.fileHandle) {
             setMessageType('file')
-            const { url, fileName} = encryptionDetails.fileHandle
+            const { url, fileName } = encryptionDetails.fileHandle
             const response = await fetch(url)
             const encryptedFile = await response.blob()
-            if(encryptedFile) {
+            if (encryptedFile) {
               const blob = await decryptFile(encryptedFile, encryptionDetails.ct, encryptionKey)
               setDecryptedFile(blob)
               setFileName(fileName)
@@ -144,7 +146,7 @@ export default function MessagePage({ message }: MessageProps) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
   const message = await prisma.message.findFirst({
     where: {
       publicId: params?.publicId as string
@@ -158,6 +160,22 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       }
     }
   }
+
+  // log message_viewed
+  const session = getAuth(req)
+  const messageViewedEvent = {
+    userId: session?.userId ?? undefined,
+    publicId: message.publicId,
+    ...getClientInfo(req)
+  }
+
+  await prisma.event.create({
+    data: {
+      eventType: EventType.MessageViewed,
+      timestamp: new Date().toISOString(),
+      eventData: messageViewedEvent as Prisma.JsonObject
+    }
+  })
 
   // destroy the message
   await prisma.message.delete({

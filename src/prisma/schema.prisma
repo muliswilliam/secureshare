@@ -22,3 +22,12 @@ model Message {
 
   @@index([userId, publicId])
 }
+
+model Event {
+  id        Int       @id @default(autoincrement())
+  eventType String
+  eventData  Json
+  timestamp  DateTime
+
+  @@index([timestamp])
+}

@@ -1,19 +1,20 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { verifySignature } from '@upstash/qstash/dist/nextjs';
+import { verifySignature } from '@upstash/qstash/dist/nextjs'
 
+// utils
 import prisma from '../../../lib/prisma'
+import { getClientInfo } from '@/shared/utils'
+import { EventType } from '@/shared/enums'
+import { Prisma } from '@prisma/client'
 
-async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { method } = req
     if (method !== 'POST') {
       res.setHeader('Allow', ['GET', 'POST'])
       res.status(405).json({
-        error: { message: `Method ${method} Not Allowed` },
+        error: { message: `Method ${method} Not Allowed` }
       })
     }
     const currentTime = new Date()
@@ -23,12 +24,27 @@ async function handler(
       }
     }
 
+    const messages = await prisma.message.findMany({
+      where: expiredMessagesFilter
+    })
     await prisma.message.deleteMany({
       where: expiredMessagesFilter
     })
 
+    // log message_expired
+    const events = messages.map((message) => ({
+      eventType: EventType.MessageExpired,
+      timestamp: new Date().toISOString(),
+      eventData: {
+        userId: null,
+        publicId: message.publicId,
+        ...getClientInfo(req)
+      } as Prisma.JsonObject
+    }))
+
+    await prisma.event.createMany({ data: events })
+
     return res.status(200).json({ success: true })
-    
   } catch (error) {
     console.log(error)
     return res.status(500).send({ error })

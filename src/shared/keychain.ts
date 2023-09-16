@@ -18,7 +18,6 @@ export default class Keychain {
   public static async getCryptoKeyFromRawKey(
     rawKey: Uint8Array
   ): Promise<CryptoKey> {
-    // @ts-ignore
     return await crypto.subtle.importKey(
       'raw',
       rawKey,

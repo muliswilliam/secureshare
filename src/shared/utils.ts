@@ -1,4 +1,7 @@
 import { addDays, addWeeks, addMonths } from 'date-fns'
+import { NextApiRequest } from 'next'
+import { ClientInfo } from './types'
+import { IncomingMessage } from 'http'
 
 /**
  * Converts a Uint8Array to a Base64 URL-safe string
@@ -67,4 +70,13 @@ export function addTimeToDate(
     default:
       throw new Error('Invalid unit. Use "day", "week", or "month".')
   }
+}
+
+export function getClientInfo(req: NextApiRequest | IncomingMessage) {
+  const clientInfo: ClientInfo = {
+    ipAddress: req.socket.remoteAddress ?? '',
+    userAgent: req.headers['user-agent'] ?? '',
+    language: req.headers['accept-language'] ?? ''
+  }
+  return clientInfo
 }

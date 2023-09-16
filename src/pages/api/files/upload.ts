@@ -15,7 +15,7 @@ export const config = {
 
 async function readFileWithStreams(filePath: string): Promise<Buffer> {
   const readStream = createReadStream(filePath)
-  let chunks: Uint8Array[] = []
+  const chunks: Uint8Array[] = []
   readStream.on('data', (chunk: Uint8Array) => {
     chunks.push(chunk)
   })
