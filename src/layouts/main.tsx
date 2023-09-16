@@ -27,7 +27,7 @@ export default function MainLayout({
       </Head>
       <MainNav className="mx-6" />
       <div
-        className={`flex flex-col mx-auto w-full max-w-screen-2xl px-2.5 lg:px-20`}
+        className={`flex flex-col mx-auto w-full max-w-screen-xl px-2.5 lg:px-20`}
       >
         {children}
       </div>
