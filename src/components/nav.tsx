@@ -36,7 +36,7 @@ export function MainNav({
     <>
       <div className="flex-col md:flex">
         <div className="border-b">
-          <div className="flex h-16 items-center justify-between px-4 px:md-4">
+          <div className="flex h-16 items-center justify-between px:md-4 mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
             <Link href="/">
               <img
                 src="/logo.png"

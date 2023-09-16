@@ -11,6 +11,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ClerkProvider
         publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        signInUrl='/sign-in'
+        signUpUrl='/sign-up'
+        
         appearance={{
           layout: {
             logoPlacement: 'inside',
@@ -19,7 +22,8 @@ export default function App({ Component, pageProps }: AppProps) {
           variables: {
             colorPrimary: '#6C27D9'
           },
-          baseTheme: dark
+          baseTheme: dark,
+          
         }}
         {...pageProps}
       >

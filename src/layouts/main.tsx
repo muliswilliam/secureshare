@@ -25,8 +25,10 @@ export default function MainLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className={`flex flex-col`}>
-        <MainNav className="mx-6" />
+      <MainNav className="mx-6" />
+      <div
+        className={`flex flex-col mx-auto w-full max-w-screen-2xl px-2.5 lg:px-20`}
+      >
         {children}
       </div>
     </>
