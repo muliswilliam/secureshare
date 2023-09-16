@@ -73,8 +73,15 @@ export function addTimeToDate(
 }
 
 export function getClientInfo(req: NextApiRequest | IncomingMessage) {
+  let ipAddress = req.headers['x-real-ip'] as string
+
+  const forwardedFor = req.headers['x-forwarded-for'] as string
+  if (!ipAddress && forwardedFor) {
+    ipAddress = forwardedFor?.split(',').at(0) ?? ''
+  }
+
   const clientInfo: ClientInfo = {
-    ipAddress: req.socket.remoteAddress ?? '',
+    ipAddress,
     userAgent: req.headers['user-agent'] ?? '',
     language: req.headers['accept-language'] ?? ''
   }
