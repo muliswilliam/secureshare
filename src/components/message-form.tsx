@@ -63,7 +63,6 @@ interface MessageFormProps {
 
 export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
   // state
-  const [submitting, setSubmitting] = React.useState<boolean>(false)
   const [progress, setProgress] = React.useState(0)
   const [status, setStatus] = React.useState<string>('')
 
@@ -95,7 +94,6 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
   const onSubmit = React.useCallback(
     async (values: z.infer<typeof formSchema>) => {
       try {
-        setSubmitting(true)
         const encryptionKey = RandomGenerator.generateRandomBytes(
           Keychain.KEY_LENGTH_IN_BYTES
         )
@@ -151,9 +149,7 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
         if (onFormSubmit) {
           onFormSubmit(url)
         }
-        setSubmitting(false)
       } catch (error) {
-        setSubmitting(false)
         console.error(error)
       }
     },
@@ -285,14 +281,14 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
             )}
           />
           <Button type="submit" className="mt-10 w-full" size="lg">
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Encrypt Message
           </Button>
         </form>
       </Form>
 
       {/* Encrypting dialog */}
-      {submitting &&
+      {form.formState.isSubmitting &&
         <Dialog open={true} onOpenChange={() => {}} >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

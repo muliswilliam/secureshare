@@ -1,9 +1,6 @@
 import React from 'react'
-import { UserButton, useAuth, useClerk } from '@clerk/nextjs'
-import Image from 'next/image'
+import { UserButton, useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
-import { dark } from '@clerk/themes'
 
 // utils
 import { cn } from '@/lib/utils'
@@ -81,6 +78,7 @@ export function MainNav({
         <div className="flex flex-col gap-4 px:md-4 mx-auto w-full max-w-screen-xl px-2.5 lg:px-20">
           <div className="flex flex-row items-center justify-between py-3">
             <Link href="/">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
                 alt="Secure share logo"

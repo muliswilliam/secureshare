@@ -1,3 +1,4 @@
+import React from 'react'
 import { AppHead } from "../../components/Head";
 import { MainNav } from "../../components/nav";
 

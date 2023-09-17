@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { dark } from '@clerk/themes'
 import React from 'react'
 import { Inter } from 'next/font/google'
+import { Toaster } from '../components/ui/toaster'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <div className={`${inter.className}`}>
           <Component {...pageProps} />
+          <Toaster />
         </div>
       </ClerkProvider>
     </ThemeProvider>

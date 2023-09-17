@@ -1,8 +1,13 @@
 {
   "extends": [
+    "next",
+    "prettier",
     "next/core-web-vitals",
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "globals": {
@@ -11,5 +16,6 @@
   "rules": {
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": "error"
-  }
+  },
+  "ignorePatterns": ["src/components/ui/*"]
 }

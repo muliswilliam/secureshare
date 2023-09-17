@@ -1,3 +1,5 @@
+import { Message, Event } from "@prisma/client"
+
 export interface EncryptionDetails {
   version: number
   /** aes mode */
@@ -21,7 +23,16 @@ export interface ClientInfo {
   language: string
 }
 
-export interface MessageCreatedEvent extends ClientInfo {
+export interface MessageEvent extends ClientInfo {
   userId?: string,
   publicId: string
+}
+
+export interface SerializedMessage extends Omit<Message, 'expiresAt' | 'createdAt'> {
+  expiresAt: string
+  createdAt: string
+}
+
+export interface SerializedEvent extends Omit<Event, 'timestamp'> {
+  timestamp: string
 }
