@@ -1,13 +1,7 @@
 import React from 'react'
 import { MainNav } from '@/components/nav'
-import { Inter } from 'next/font/google'
-import Head from 'next/head'
-
-// If loading a variable font, you don't need to specify the font weight
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-})
+import { AppHead } from '../components/Head'
+import { ContentWrapper } from './content-wrapper'
 
 export default function MainLayout({
   children,
@@ -16,19 +10,11 @@ export default function MainLayout({
 }) {
   return (
     <>
-      <Head>
-        <title> Share Secrets Quickly and Securely | SecureShare</title>
-        <meta
-          name="description"
-          content="Experience the ultimate in online security with our top-rated encrypted messaging and chat room service. Enjoy robust password and file protection, complete with a self-destruct feature. Safeguard your sensitive data, utilize link tracking, and shield yourself from phishing attempts with our cutting-edge web app."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <div className={`flex flex-col`}>
-        <MainNav className="mx-6" />
+      <AppHead />
+      <MainNav />
+      <ContentWrapper>
         {children}
-      </div>
+      </ContentWrapper>
     </>
   )
 }

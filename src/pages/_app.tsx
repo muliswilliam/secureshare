@@ -4,13 +4,23 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/components/theme-provider'
 import { dark } from '@clerk/themes'
 import React from 'react'
+import { Inter } from 'next/font/google'
+import { Toaster } from '../components/ui/toaster'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export default function App({ Component, pageProps }: AppProps) {
   
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <ClerkProvider
         publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        signInUrl='/sign-in'
+        signUpUrl='/sign-up'
+        
         appearance={{
           layout: {
             logoPlacement: 'inside',
@@ -19,11 +29,15 @@ export default function App({ Component, pageProps }: AppProps) {
           variables: {
             colorPrimary: '#6C27D9'
           },
-          baseTheme: dark
+          baseTheme: dark,
+          
         }}
         {...pageProps}
       >
-        <Component {...pageProps} />
+        <div className={`${inter.className}`}>
+          <Component {...pageProps} />
+          <Toaster />
+        </div>
       </ClerkProvider>
     </ThemeProvider>
   )

@@ -2,9 +2,9 @@ import React from 'react'
 
 export function HomeContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
-      <div className="flex justify-end order-2 w-full md:order-1">
-        <div className="flex flex-col justify-start p-4 md:p-8 lg:p-12 lg:border-r 2xl:max-w-[754px]">
+    <div className="flex flex-col h-[calc(100vh-4rem)] lg:flex-row">
+      <div className="flex justify-end order-2 w-full lg:order-1">
+        <div className="flex flex-col justify-start p-6 lg:border-r 2xl:max-w-[754px]">
           <h1 className="text-left text-xl lg:text-2xl xl:text-3xl py-4 md:py-8 font-bold">
             What we do
           </h1>
@@ -46,7 +46,7 @@ export function HomeContent({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <div className="flex order-1 md:order-1 w-full">
-        <div className="flex flex-col w-[100%] justify-start p-4 md:p-8 lg:p-12 2xl:max-w-[754px]">
+        <div className="flex flex-col w-[100%] justify-start p-6 2xl:max-w-[754px]">
           {children}
         </div>
       </div>

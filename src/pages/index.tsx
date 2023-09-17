@@ -1,8 +1,8 @@
+import React from 'react'
 import { HomeContent } from '../components/home-content'
 import MainLayout from '../layouts/main'
 import { MessageDialog } from '../components/message-dialog'
 import { MessageForm } from '../components/message-form'
-import React from 'react'
 
 export default function Home() {
   // state
