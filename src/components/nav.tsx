@@ -1,15 +1,16 @@
 import React from 'react'
 import { UserButton, useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
+import { twMerge } from 'tailwind-merge'
+import { useRouter } from 'next/router'
 
 // utils
 import { cn } from '@/lib/utils'
+import { generateRoomId } from '../shared/utils'
 
 // components
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
-import { twMerge } from 'tailwind-merge'
-import { useRouter } from 'next/router'
 
 const MenuItem = ({ label, href }: { label: string; href: string }) => {
   return (
@@ -28,11 +29,7 @@ interface DashboardOption {
   active?: boolean
 }
 
-const DashboardMenuItem = ({
-  url,
-  label,
-  active
-}: DashboardOption) => {
+const DashboardMenuItem = ({ url, label, active }: DashboardOption) => {
   return (
     <Link
       className={twMerge(
@@ -53,10 +50,7 @@ interface Props {
   showDashboardMenu?: boolean
 }
 
-export function MainNav({
-  className,
-  showDashboardMenu
-}: Props) {
+export function MainNav({ className, showDashboardMenu }: Props) {
   // hooks
   const { userId } = useAuth()
   const router = useRouter()
@@ -87,6 +81,13 @@ export function MainNav({
               />
             </Link>
             <div className="flex items-center justify-between gap-6">
+              <Button
+                variant="outline"
+                className="hover:bg-primary whitespace-nowrap"
+                onClick={() => router.push(`/chats/${generateRoomId()}}`)}
+              >
+                Encrypted chat
+              </Button>
               <nav className={cn('hidden md:flex items-center', className)}>
                 {userId && (
                   <MenuItem href="/dashboard/messages" label="Dashboard" />

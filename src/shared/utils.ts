@@ -1,3 +1,4 @@
+import { RoomServiceClient } from 'livekit-server-sdk';
 import { addDays, addWeeks, addMonths } from 'date-fns'
 import { NextApiRequest } from 'next'
 import { ClientInfo } from './types'
@@ -86,4 +87,82 @@ export function getClientInfo(req: NextApiRequest | IncomingMessage) {
     language: req.headers['accept-language'] ?? ''
   }
   return clientInfo
+}
+
+export function generateColorFromText(text: string): string {
+  // Generate RGB values based on the characters of the text
+  const r = text
+    .split('')
+    .map((char) => char.charCodeAt(0))
+    .reduce((acc, val) => acc + val, 0) % 256;
+
+  const g = text
+    .split('')
+    .map((char) => char.charCodeAt(0) * 2)
+    .reduce((acc, val) => acc + val, 0) % 256;
+
+  const b = text
+    .split('')
+    .map((char) => char.charCodeAt(0) * 3)
+    .reduce((acc, val) => acc + val, 0) % 256;
+
+  // Convert RGB values to a hexadecimal color representation
+  const color = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+  return color;
+}
+
+export function generateSummary(names: string[], maxNames?: number): string {
+  const MAX_NAMES_DISPLAYED = maxNames || 3; // Maximum number of names to display
+  const totalCount = names.length;
+
+  if (totalCount === 0) {
+    return 'No one';
+  } else if (totalCount <= MAX_NAMES_DISPLAYED) {
+    return names.join(', ');
+  } else {
+    const displayedNames = names.slice(0, MAX_NAMES_DISPLAYED);
+    const remainingCount = totalCount - MAX_NAMES_DISPLAYED;
+    return `${displayedNames.join(', ')}, and ${remainingCount} others`;
+  }
+}
+
+export function randomString(length: number): string {
+  let result = '';
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+export function generateRoomId(): string {
+  return `${randomString(4)}-${randomString(4)}`;
+}
+
+function checkKeys() {
+  if (typeof process.env.LIVEKIT_API_KEY === 'undefined') {
+    throw new Error('LIVEKIT_API_KEY is not defined');
+  }
+  if (typeof process.env.LIVEKIT_API_SECRET === 'undefined') {
+    throw new Error('LIVEKIT_API_SECRET is not defined');
+  }
+}
+
+export function getRoomClient(): RoomServiceClient {
+  checkKeys();
+  return new RoomServiceClient(getLiveKitURL());
+}
+
+export function getLiveKitURL(region?: string | string[]): string {
+  let targetKey = 'LIVEKIT_URL';
+  if (region && !Array.isArray(region)) {
+    targetKey = `LIVEKIT_URL_${region}`.toUpperCase();
+  }
+  const url = process.env[targetKey];
+  if (!url) {
+    throw new Error(`${targetKey} is not defined`);
+  }
+  return url;
 }

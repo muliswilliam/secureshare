@@ -1,3 +1,4 @@
+import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client';
 import { Message, Event } from "@prisma/client"
 
 export interface EncryptionDetails {
@@ -35,4 +36,20 @@ export interface SerializedMessage extends Omit<Message, 'expiresAt' | 'createdA
 
 export interface SerializedEvent extends Omit<Event, 'timestamp'> {
   timestamp: string
+}
+
+
+export interface SessionProps {
+  roomName: string;
+  identity: string;
+  audioTrack?: LocalAudioTrack;
+  videoTrack?: LocalVideoTrack;
+  region?: string;
+  // turnServer?: RTCIceServer;
+  forceRelay?: boolean;
+}
+
+export interface TokenResult {
+  identity: string;
+  accessToken: string;
 }
