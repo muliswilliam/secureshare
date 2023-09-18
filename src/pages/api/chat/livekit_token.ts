@@ -7,6 +7,9 @@ import { TokenResult } from '../../../shared/types';
 const apiKey = process.env.LIVEKIT_API_KEY;
 const apiSecret = process.env.LIVEKIT_API_SECRET;
 
+console.log('api key', apiKey);
+console.log('api secret', apiSecret);
+
 const createToken = (userInfo: AccessTokenOptions, grant: VideoGrant) => {
   const at = new AccessToken(apiKey, apiSecret, userInfo);
   at.ttl = '5m';
