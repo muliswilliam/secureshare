@@ -47,7 +47,12 @@ export default function ChatPage() {
             </LiveKitRoom>
           )}
         </HomeContent>
-        {isClient && <NewChatDialog open={!username} />}
+        {isClient && (
+          <NewChatDialog
+            open={!username}
+            onClose={() => router.push('/', undefined, { shallow: true })}
+          />
+        )}
       </MainLayout>
     </>
   )

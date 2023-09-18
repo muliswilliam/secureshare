@@ -84,7 +84,7 @@ export function MainNav({ className, showDashboardMenu }: Props) {
               <Button
                 variant="outline"
                 className="hover:bg-primary whitespace-nowrap"
-                onClick={() => router.push(`/chats/${generateRoomId()}}`)}
+                onClick={() => router.push(`/chats/${generateRoomId()}`)}
               >
                 Encrypted chat
               </Button>
