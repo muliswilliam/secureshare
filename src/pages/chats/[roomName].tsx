@@ -30,6 +30,8 @@ export default function ChatPage() {
     return <div>Getting token...</div>
   }
 
+  console.log(process.env.NEXT_PUBLIC_LIVEKIT_URL)
+
   return (
     <>
       <MainLayout>
