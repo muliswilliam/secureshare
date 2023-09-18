@@ -13,7 +13,9 @@ import {
   FormMessage
 } from './ui/form'
 import { Input } from './ui/input'
-import { generateRoomId } from '../shared/utils'
+import { generateRoomId, uint8ArrayToBase64UrlSafe } from '../shared/utils'
+import RandomGenerator from '../shared/random-generator'
+import Keychain from '../shared/keychain'
 
 export const NewChatDialog = ({ open, onClose }: { open: boolean, onClose: () => void }) => {
   const router = useRouter()
@@ -27,10 +29,15 @@ export const NewChatDialog = ({ open, onClose }: { open: boolean, onClose: () =>
   })
 
   const onSubmit = async (data: { name?: string }) => {
+    const encryptionKey = RandomGenerator.generateRandomBytes(
+      Keychain.KEY_LENGTH_IN_BYTES
+    )
+    const secretKey = uint8ArrayToBase64UrlSafe(encryptionKey)
     const { name } = data
     router.push(
       {
         pathname: '/chats/' + roomName || generateRoomId(),
+        hash: secretKey,
         query: {
           username: name || 'Anonymous'
         }
