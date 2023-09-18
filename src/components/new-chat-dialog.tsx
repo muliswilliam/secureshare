@@ -22,7 +22,7 @@ export const NewChatDialog = ({ open }: { open: boolean }) => {
   const onSubmit = async (data: { name?: string }) => {
     const { name } = data
     router.push({
-      pathname: `/chats/${roomName || generateRoomId()}`,
+      pathname: '/chats/' + roomName || generateRoomId(),
       query: {
         username: name || 'Anonymous'
       }
