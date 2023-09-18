@@ -67,7 +67,7 @@ export function LiveKitChat() {
 
   const onShareLink = React.useCallback(() => {
     navigator.clipboard.writeText(
-      `${window.location.origin}/chats/${roomContext.name}`
+      `${window.location.origin}/chats/${roomContext.name}${location.hash}`
     )
     toast.toast({
       title: 'Link copied',
