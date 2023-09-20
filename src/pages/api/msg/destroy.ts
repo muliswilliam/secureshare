@@ -56,3 +56,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default verifySignature(handler)
+
+export const config = {
+  runtime: 'edge' // this is a pre-requisite
+}

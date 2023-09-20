@@ -8,6 +8,7 @@ import { once } from 'events'
 const bucketName = process.env.SUPABASE_BUCKET_NAME as string
 
 export const config = {
+  runtime: 'edge',
   api: {
     bodyParser: false
   }
@@ -58,3 +59,4 @@ export default async function handler(
     res.status(400).json({ message: 'Error uploading file', error })
   }
 }
+

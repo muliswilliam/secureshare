@@ -51,8 +51,6 @@ export default function Messages({
   events
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
-  console.log(events.map(event => event.ipAddressInfo))
-
   return (
     <>
       <AppHead />

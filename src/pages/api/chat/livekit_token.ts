@@ -68,3 +68,7 @@ export default async function handler(
     res.status(500).end()
   }
 }
+
+export const config = {
+  runtime: 'edge' // this is a pre-requisite
+}

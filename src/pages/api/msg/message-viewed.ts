@@ -44,3 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).send({ error })
   }
 }
+
+export const config = {
+  runtime: 'edge' // this is a pre-requisite
+}
