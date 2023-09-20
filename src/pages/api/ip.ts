@@ -9,6 +9,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 
+  console.log('x-vercel-forwarded-for' ,req.headers['x-vercel-forwarded-for'])
+  console.log('x-vercel-ip-country' ,req.headers['x-vercel-ip-country'])
+  console.log('x-vercel-ip-country-region' ,req.headers['x-vercel-ip-country-region'])
+  console.log('x-vercel-ip-city' ,req.headers['x-vercel-ip-city'])
+  console.log('x-vercel-ip-longitude' ,req.headers['x-vercel-ip-longitude'])
+  console.log('x-vercel-ip-latitude' ,req.headers['x-vercel-ip-latitude'])
+  console.log('x-vercel-ip-timezone' ,req.headers['x-vercel-ip-timezone'])
+
   const response = await fetch('http://ip-api.com/json/')
   const data = await response.json()
   const { status, query, ...rest } = data
