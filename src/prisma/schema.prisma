@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model Message {
@@ -19,7 +20,7 @@ model Message {
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   notifyOnOpen Boolean
-  status       String @default("pending")
+  status       String   @default("pending")
   note         String?
   expired      Boolean?
 
@@ -27,21 +28,43 @@ model Message {
 }
 
 model Event {
-  id        Int      @id @default(autoincrement())
-  eventType String
-  eventData Json
-  timestamp DateTime
+  id            Int            @id @default(autoincrement())
+  eventType     String
+  eventData     Json
+  timestamp     DateTime
+  ipAddressInfo IpAddressInfo?
 
-  @@index([timestamp])
+  @@index([id, timestamp])
 }
 
 model User {
-  id         String @id
+  id         String    @id
   first_name String
   last_name  String
-  email      String @unique
-  created_at DateTime @default(now())
+  email      String    @unique
+  created_at DateTime  @default(now())
   updated_at DateTime?
 
   @@index([id, email])
+}
+
+model IpAddressInfo {
+  id          Int       @id @default(autoincrement())
+  ipAddress   String
+  country     String
+  countryCode String
+  region      String
+  regionName  String
+  city        String
+  zip         String
+  lat         Float
+  lon         Float
+  timezone    String
+  isp         String
+  org         String
+  as          String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime?
+  eventId     Int?      @unique
+  event       Event?    @relation(fields: [eventId], references: [id])
 }

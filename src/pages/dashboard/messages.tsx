@@ -5,7 +5,6 @@ import { getAuth } from '@clerk/nextjs/server'
 
 // utils
 import prisma from '../../lib/prisma'
-import { SerializedEvent, SerializedMessage } from '../../shared/types'
 
 // components
 import { AppHead } from '../../components/Head'
@@ -13,12 +12,14 @@ import { MainNav } from '../../components/nav'
 import { ContentWrapper } from '../../layouts/content-wrapper'
 import { Button } from '../../components/ui/button'
 import { MessagesList } from '../../components/messages-list'
+import { Message } from '@prisma/client'
+import { EventWithIpAddressInfo } from '../../shared/types'
 
 
 
 type MessagesPageProps = {
-  messages: SerializedMessage[]
-  events: SerializedEvent[]
+  messages: Message[]
+  events: EventWithIpAddressInfo[]
 }
 
 export const getServerSideProps = (async ({ req }) => {
@@ -28,7 +29,7 @@ export const getServerSideProps = (async ({ req }) => {
     where: {
       userId
     }
-  })
+  }) as Message[]
 
   const events = await prisma.event.findMany({
     where: {
@@ -36,21 +37,13 @@ export const getServerSideProps = (async ({ req }) => {
         path: ['userId'],
         equals: userId as string
       }
+    },
+    include: {
+      ipAddressInfo: true
     }
   })
 
-  const serializedMessage: SerializedMessage[] = messages.map((msg) => ({
-    ...msg,
-    expiresAt: msg.expiresAt.toISOString(),
-    createdAt: msg.createdAt.toISOString()
-  }))
-
-  const serializedEvents: SerializedEvent[] = events.map((event) => ({
-    ...event,
-    timestamp: event.timestamp.toISOString()
-  }))
-
-  return { props: { messages: serializedMessage, events: serializedEvents } }
+  return { props: { messages, events } }
 }) satisfies GetServerSideProps<MessagesPageProps>
 
 export default function Messages({
@@ -58,6 +51,7 @@ export default function Messages({
   events
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 
+  console.log(events.map(event => event.ipAddressInfo))
 
   return (
     <>

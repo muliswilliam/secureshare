@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 
 // utils
 import { EventType, MessageStatus } from '../shared/enums'
-import { MessageEvent, SerializedEvent, SerializedMessage } from '../shared/types'
+import { EventWithIpAddressInfo } from '../shared/types'
 
 // components
 import {
@@ -27,20 +27,34 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from './ui/form'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from './ui/form'
 import { Textarea } from './ui/textarea'
 import { Button } from './ui/button'
 import { useToast } from './ui/use-toast'
 
-
 export const MessagesList = ({
   messages,
   events
-}: { messages: SerializedMessage[], events: SerializedEvent[] }) => {
+}: {
+  messages: Message[]
+  events: EventWithIpAddressInfo[]
+}) => {
   const [isLogsDialogOpen, setIsLogsDialogOpen] = React.useState<boolean>(false)
-  const [currentLogs, setCurrentLogs] = React.useState<SerializedEvent[]>([])
+  const [currentLogs, setCurrentLogs] = React.useState<
+    EventWithIpAddressInfo[]
+  >([])
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState<boolean>(false)
-  const [currentMessage, setCurrentMessage] = React.useState<SerializedMessage | null>(null)
+  const [currentMessage, setCurrentMessage] = React.useState<Message | null>(
+    null
+  )
 
   // hooks
   const form = useForm<{ note: string }>({
@@ -49,7 +63,7 @@ export const MessagesList = ({
     }
   })
   const { toast } = useToast()
-  const router = useRouter();
+  const router = useRouter()
 
   const renderMessageStatus = (status: string) => {
     switch (status) {
@@ -78,9 +92,8 @@ export const MessagesList = ({
     }
   }
 
-
   const messageEventMap = React.useMemo(() => {
-    const map: { [publicId: string]: SerializedEvent[] } = {}
+    const map: { [publicId: string]: EventWithIpAddressInfo[] } = {}
     messages.forEach((msg) => {
       events.forEach((e) => {
         const { eventData } = e
@@ -111,51 +124,57 @@ export const MessagesList = ({
     })
   }, [currentLogs])
 
-  const onSubmit = React.useCallback(async ({ note }: { note: string }) => {
-    if (!currentMessage) return
-    try {
-      const { id } = currentMessage
-      const res = await fetch(`/api/msg/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ note })
-      })
-      await res.json()
-      setIsEditDialogOpen(false)
-      setCurrentMessage(null)
-      form.reset()
-      // refresh page props
-      router.replace(router.asPath)
-      toast({
-        title: "Message updated",
-        description: "Your message has been updated successfully.",
-      })
-    } catch (error) {
-      console.error(error)
-    }
-  }, [currentMessage, form, router, toast])
+  const onSubmit = React.useCallback(
+    async ({ note }: { note: string }) => {
+      if (!currentMessage) return
+      try {
+        const { id } = currentMessage
+        const res = await fetch(`/api/msg/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ note })
+        })
+        await res.json()
+        setIsEditDialogOpen(false)
+        setCurrentMessage(null)
+        form.reset()
+        // refresh page props
+        router.replace(router.asPath)
+        toast({
+          title: 'Message updated',
+          description: 'Your message has been updated successfully.'
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    [currentMessage, form, router, toast]
+  )
 
-  const onDelete = React.useCallback(async (id: number) => {
-    try {
-      const res = await fetch(`/api/msg/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      await res.json()
-      // refresh page props
-      router.replace(router.asPath)
-      toast({
-        title: "Message deleted",
-        description: "Your message has been deleted successfully.",
-      })
-    } catch (error) {
-      console.error(error)
-    }
-  }, [router, toast])
+  const onDelete = React.useCallback(
+    async (id: number) => {
+      try {
+        const res = await fetch(`/api/msg/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        await res.json()
+        // refresh page props
+        router.replace(router.asPath)
+        toast({
+          title: 'Message deleted',
+          description: 'Your message has been deleted successfully.'
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    [router, toast]
+  )
 
   React.useEffect(() => {
     if (!currentMessage) return
@@ -253,26 +272,25 @@ export const MessagesList = ({
             Message Logs
           </DialogHeader>
           <div className="flex flex-col w-full justify-center items-center mt-4 gap-4">
-            {sortedLogs.map(({ eventType, timestamp, eventData }) => (
+            {sortedLogs.map(({ id, eventType, timestamp, ipAddressInfo }) => (
               <div
-                key={timestamp}
+                key={id}
                 className="flex flex-col w-full bg-accent p-6 rounded-md gap-2"
               >
-                <div className="flex w-full justify-between items-center">
-                  <span className="font-light text-md text-sm">
-                    {eventTypeToText(eventType)}
-                  </span>
-                  <span className="font-light text-md text-sm">
-                    {format(new Date(timestamp), 'M/dd/yyyy pp')}
-                  </span>
-                </div>
-                <span className="font-light text-sm">
-                  IP Address:{' '}
-                  {(eventData as unknown as MessageEvent)?.ipAddress}
+                <span className="font-light text-md text-md">
+                  {eventTypeToText(eventType)} on{' '}
+                  {format(new Date(timestamp), 'M/dd/yyyy')}
                 </span>
-                <span className="font-light text-xs">
-                  Device: {(eventData as unknown as MessageEvent)?.ipAddress}
-                </span>
+                {(eventType === EventType.MessageViewed || eventType === EventType.MessageCreated) && ipAddressInfo && (
+                    <>
+                      <span className="font-light text-sm">
+                        {ipAddressInfo?.city},&nbsp;{ipAddressInfo?.country}
+                      </span>
+                      <span className="font-light text-sm">
+                        IP: {ipAddressInfo?.ipAddress}
+                      </span>
+                    </>
+                  )}
               </div>
             ))}
           </div>

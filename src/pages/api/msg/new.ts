@@ -7,10 +7,12 @@ import { z } from 'zod'
 import prisma from '../../../lib/prisma'
 import { EventType } from '../../../shared/enums'
 import { getClientInfo } from '../../../shared/utils'
+import { IpAddressInfo } from '../../../shared/types'
 
 const schema = z.object({
   encryptionDetails: z.string(),
-  expiresAt: z.string()
+  expiresAt: z.string(),
+  ipAddressInfo: z.custom<IpAddressInfo>()
 })
 
 export default async function handler(
@@ -25,18 +27,18 @@ export default async function handler(
         error: { message: `Method ${method} Not Allowed` }
       })
     }
-    const response = schema.safeParse(req.body)
+    const reqBody = schema.safeParse(req.body)
 
     // If the request body is invalid, return a 400 error with the validation errors
-    if (!response.success) {
-      const { errors } = response.error
+    if (!reqBody.success) {
+      const { errors } = reqBody.error
 
       return res.status(400).json({
         error: { message: 'Invalid request', errors }
       })
     }
     const session = getAuth(req)
-    const { encryptionDetails, expiresAt } = response.data
+    const { encryptionDetails, expiresAt, ipAddressInfo } = reqBody.data
     const publicId = crypto.randomBytes(16).toString('hex')
     const result = await prisma.message.create({
       data: {
@@ -59,7 +61,10 @@ export default async function handler(
       data: {
         eventType: EventType.MessageCreated,
         timestamp: new Date().toISOString(),
-        eventData: messageCreatedEvent as Prisma.JsonObject
+        eventData: messageCreatedEvent as Prisma.JsonObject,
+        ipAddressInfo: {
+          create: { ...ipAddressInfo }
+        }
       }
     })
     res.status(200).json(result)

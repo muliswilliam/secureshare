@@ -6,7 +6,7 @@ import { getAuth } from '@clerk/nextjs/server'
 
 // utils
 import { EncryptionDetails } from '../../shared/types'
-import { base64UrlSafeToUint8Array, getClientInfo } from '../../shared/utils'
+import { base64UrlSafeToUint8Array, getClientInfo, getIpAddressInfo } from '../../shared/utils'
 import prisma from '../../lib/prisma'
 import { EventType, MessageStatus } from '../../shared/enums'
 import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
@@ -20,11 +20,72 @@ import { FileDownloadDialog } from '../../components/file-download-dialog'
 import { CounterDialog } from '../../components/counter-dialog'
 import { ErrorDialog } from '../../components/error-dialog'
 
-interface MessageProps {
-  message: Message | null
+
+
+export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
+  const message = await prisma.message.findFirst({
+    where: {
+      publicId: params?.publicId as string,
+      status: {
+        equals: MessageStatus.PENDING
+      }
+    }
+  })
+
+  if (message === null) {
+    return {
+      props: {
+        message: null
+      }
+    }
+  }
+
+  // update message status to seen
+  await prisma.message.update({
+    where: {
+      id: message.id
+    },
+    data: {
+      status: MessageStatus.SEEN
+    }
+  })
+
+  const ipAddressInfo = await getIpAddressInfo()
+  console.log(ipAddressInfo)
+
+  // log message_viewed
+  const session = getAuth(req)
+  const messageViewedEvent = {
+    userId: session?.userId ?? undefined,
+    publicId: message.publicId,
+    ...getClientInfo(req)
+  }
+
+  const result = await prisma.event.create({
+    data: {
+      eventType: EventType.MessageViewed,
+      timestamp: new Date().toISOString(),
+      eventData: messageViewedEvent as Prisma.JsonObject
+    }
+  })
+
+  // TODO: Notify user that message was viewed
+
+  return {
+    props: {
+      messageViewedEventId: result.id,
+      message
+    }
+  }
 }
 
-export default function MessagePage({ message }: MessageProps) {
+
+interface MessageProps {
+  message: Message | null,
+  messageViewedEventId: number | null
+}
+
+export default function MessagePage({ message, messageViewedEventId }: MessageProps) {
   // state
   const [isClient, setIsClient] = React.useState(false)
   const [secretkey, setSecretKey] = React.useState<string | undefined>()
@@ -89,6 +150,18 @@ export default function MessagePage({ message }: MessageProps) {
             setMessageType('text')
             const text = await decryptText(encryptionDetails.ct, encryptionKey)
             setDecryptedMessage(text)
+            console.log(messageViewedEventId)
+            if (messageViewedEventId) {
+              const ipAddressInfo = await getIpAddressInfo()
+              await fetch('/api/msg/message-viewed', {
+                method: 'POST',
+                headers: {  'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  messageViewedEventId,
+                  ipAddressInfo
+                })
+              })
+            }
           }
         } catch (error) {
           setShowErrorDialog(true)
@@ -97,7 +170,7 @@ export default function MessagePage({ message }: MessageProps) {
       }
       decrypt()
     }
-  }, [message, secretkey])
+  }, [message, secretkey, messageViewedEventId])
 
   if (router.isFallback) return <div>Loading....</div>
 
@@ -144,61 +217,4 @@ export default function MessagePage({ message }: MessageProps) {
       )}
     </MainLayout>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
-  const message = await prisma.message.findFirst({
-    where: {
-      publicId: params?.publicId as string,
-      status: {
-        equals: 'pending'
-      }
-    }
-  })
-
-  if (message === null) {
-    return {
-      props: {
-        message: null
-      }
-    }
-  }
-
-  // update message status to seen
-  await prisma.message.update({
-    where: {
-      id: message.id
-    },
-    data: {
-      status: MessageStatus.SEEN
-    }
-  })
-
-  // log message_viewed
-  const session = getAuth(req)
-  const messageViewedEvent = {
-    userId: session?.userId ?? undefined,
-    publicId: message.publicId,
-    ...getClientInfo(req)
-  }
-
-  await prisma.event.create({
-    data: {
-      eventType: EventType.MessageViewed,
-      timestamp: new Date().toISOString(),
-      eventData: messageViewedEvent as Prisma.JsonObject
-    }
-  })
-
-  // TODO: Notify user that message was viewed
-
-  return {
-    props: {
-      message: {
-        ...message,
-        createdAt: message?.createdAt.toISOString(),
-        expiresAt: message?.expiresAt.toISOString()
-      }
-    }
-  }
 }

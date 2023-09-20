@@ -11,7 +11,7 @@ import { Message } from '@prisma/client'
 
 // utils
 import { encryptFile, encryptText } from '../shared/encrypt-decrypt'
-import { addTimeToDate, uint8ArrayToBase64UrlSafe } from '../shared/utils'
+import { addTimeToDate, getIpAddressInfo, uint8ArrayToBase64UrlSafe } from '../shared/utils'
 import Keychain from '../shared/keychain'
 import RandomGenerator from '../shared/random-generator'
 
@@ -133,15 +133,16 @@ export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
 
         setStatus('Creating SecureShare link...')
         setProgress(0)
+        const ipAddressInfo = await getIpAddressInfo()
         const { data: msg } = await axios.post<Message>(
           '/api/msg/new',
           {
+            ipAddressInfo,
             encryptionDetails: JSON.stringify(encryptionDetails),
             expiresAt: addTimeToDate(1, values.autoDeletePeriod)
           },
           { onUploadProgress: axiosProgressCallback }
         )
-        console.log(msg)
         const publicId = msg.publicId
         const url = `${window.location.origin}/messages/${publicId}#${secretKey}`
         setStatus('SecureShare link is ready!')

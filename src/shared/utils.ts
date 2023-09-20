@@ -1,7 +1,7 @@
 import { RoomServiceClient } from 'livekit-server-sdk'
 import { addDays, addWeeks, addMonths } from 'date-fns'
 import { NextApiRequest } from 'next'
-import { ClientInfo } from './types'
+import { ClientInfo, IpAddressInfo } from './types'
 import { IncomingMessage } from 'http'
 
 /**
@@ -171,4 +171,17 @@ export function getLiveKitURL(region?: string | string[]): string {
     throw new Error(`${targetKey} is not defined`)
   }
   return url
+}
+
+// add return type
+
+export async function getIpAddressInfo(): Promise<IpAddressInfo> {
+  const response = await fetch('http://ip-api.com/json/')
+  const data = await response.json()
+  const { status, query, ...rest } = data
+
+  if (status !== 'success') {
+    throw new Error('Failed to get IP address info')
+  }
+  return { ...rest, ipAddress: query } as IpAddressInfo
 }

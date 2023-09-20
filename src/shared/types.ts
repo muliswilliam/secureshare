@@ -1,6 +1,5 @@
 import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client';
-import { Message, Event } from "@prisma/client"
-
+import { Prisma } from '@prisma/client';
 export interface EncryptionDetails {
   version: number
   /** aes mode */
@@ -29,15 +28,6 @@ export interface MessageEvent extends ClientInfo {
   publicId: string
 }
 
-export interface SerializedMessage extends Omit<Message, 'expiresAt' | 'createdAt'> {
-  expiresAt: string
-  createdAt: string
-}
-
-export interface SerializedEvent extends Omit<Event, 'timestamp'> {
-  timestamp: string
-}
-
 
 export interface SessionProps {
   roomName: string;
@@ -53,3 +43,24 @@ export interface TokenResult {
   identity: string;
   accessToken: string;
 }
+
+export interface IpAddressInfo {
+  country: string
+  countryCode: string
+  region: string
+  regionName: string
+  city: string
+  zip: string
+  lat: number
+  lon: number
+  timezone: string
+  isp: string
+  org: string
+  as: string
+  ipAddress: string
+}
+
+export type EventWithIpAddressInfo = Prisma.EventGetPayload<{
+  event: true
+  include: { ipAddressInfo: true }
+}>
