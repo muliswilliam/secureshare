@@ -176,12 +176,11 @@ export function getLiveKitURL(region?: string | string[]): string {
 // add return type
 
 export async function getIpAddressInfo(): Promise<IpAddressInfo> {
-  const response = await fetch('http://ip-api.com/json/')
-  const data = await response.json()
-  const { status, query, ...rest } = data
-
-  if (status !== 'success') {
-    throw new Error('Failed to get IP address info')
+  try {
+    const response = await fetch('/api/ip')
+    return await response.json() as IpAddressInfo    
+  } catch (error) {
+    console.log(error)
+    throw new Error('Failed to get IP address info') 
   }
-  return { ...rest, ipAddress: query } as IpAddressInfo
 }

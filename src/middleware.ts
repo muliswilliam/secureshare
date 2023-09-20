@@ -13,7 +13,8 @@ export default authMiddleware({
     '/api/files/upload',
     '/api/msg/new',
     'api/msg/destroy',
-    '/api/msg/message-viewed'
+    '/api/msg/message-viewed',
+    'api/ip'
   ]
 })
 

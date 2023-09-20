@@ -50,9 +50,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
     }
   })
 
-  const ipAddressInfo = await getIpAddressInfo()
-  console.log(ipAddressInfo)
-
   // log message_viewed
   const session = getAuth(req)
   const messageViewedEvent = {
