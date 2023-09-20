@@ -19,14 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // console.log('x-vercel-ip-timezone' ,req.headers['x-vercel-ip-timezone'])
 
   const ipAddress = req.headers['x-vercel-forwarded-for'] as string
-  const response = await fetch(`http://ip-api.com/json/${ipAddress}`)
+  const response = await fetch(`http://ip-api.com/json/${ipAddress || ''}`)
   const data = await response.json()
   const { status, query, ...rest } = data
-
   if (status !== 'success') {
-    res.status(500).json({ error: 'Failed to get IP address info' })
+    return res.status(500).json({ error: 'Failed to get IP address info' })
   }
   const ipInfo = { ...rest, ipAddress: query } as IpAddressInfo
 
-  res.status(200).json({ ...ipInfo })
+  return res.status(200).json({ ...ipInfo })
 }

@@ -12,12 +12,13 @@ export default authMiddleware({
     '/api/chat/livekit_token',
     '/api/files/upload',
     '/api/msg/new',
-    'api/msg/destroy',
+    '/api/msg/destroy',
     '/api/msg/message-viewed',
-    'api/ip'
+    '/api/ip'
   ]
 })
 
 export const config = {
-  matcher: ['/((?!_next/image|_next/static|favicon.ico).*)']
+  // matcher: ['/((?!_next/image|_next/static|favicon.ico|logo.png).*)']
+  matcher: ["/((?!.*\\..*|_next).*)","/","/(api|trpc)(.*)"],
 }
