@@ -1,3 +1,4 @@
+import { NextMiddleware } from "next/server";
 import { LocalAudioTrack, LocalVideoTrack } from 'livekit-client';
 import { Prisma } from '@prisma/client';
 export interface EncryptionDetails {
@@ -64,3 +65,5 @@ export type EventWithIpAddressInfo = Prisma.EventGetPayload<{
   event: true
   include: { ipAddressInfo: true }
 }>
+
+export type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;

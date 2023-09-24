@@ -1,24 +1,10 @@
-import { authMiddleware } from '@clerk/nextjs'
+import { publicRoutes } from './middleware/public-routes'
+import { stackMiddlewares } from './middleware/stack-middlewares'
+import { withAuth } from './middleware/with-clerk-auth'
+import { withRateLimit } from './middleware/with-rate-limit'
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
-export default authMiddleware({
-  // routes that do not require authentication
-  publicRoutes: [
-    '/',
-    '/messages/(.*)',
-    '/chats/(.*)',
-    '/api/chat/livekit_token',
-    '/api/files/upload',
-    '/api/msg/new',
-    '/api/msg/destroy',
-    '/api/msg/message-viewed',
-    '/api/ip'
-  ]
-})
+export default stackMiddlewares([withRateLimit, withAuth])
 
 export const config = {
-  // matcher: ['/((?!_next/image|_next/static|favicon.ico|logo.png).*)']
-  matcher: ["/((?!.*\\..*|_next).*)","/","/(api|trpc)(.*)"],
+  matcher: ["/((?!.*\\..*|_next).*)","/","/(api|trpc)(.*)"]
 }
