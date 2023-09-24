@@ -1,8 +1,9 @@
 import React from 'react'
-import { HomeContent } from '../components/home-content'
+import dynamic from 'next/dynamic'
 import MainLayout from '../layouts/main'
-import { MessageDialog } from '../components/message-dialog'
-import { MessageForm } from '../components/message-form'
+const HomeContent = dynamic(() => import('../components/home-content'), { ssr: true })
+const MessageDialog = dynamic(() => import('../components/message-dialog'), { ssr: false })
+const MessageForm = dynamic(() => import('../components/message-form'), { ssr: false })
 
 export default function Home() {
   // state

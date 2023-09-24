@@ -1,5 +1,6 @@
 import React from 'react'
 import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
 import { GetServerSideProps } from 'next'
 import { Message, Prisma } from '@prisma/client'
 import { getAuth } from '@clerk/nextjs/server'
@@ -12,10 +13,10 @@ import { EventType, MessageStatus } from '../../shared/enums'
 import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
 
 // components
-import { HomeContent } from '../../components/home-content'
 import MainLayout from '../../layouts/main'
 import { TextMessageDialog } from '../../components/text-message-dialog'
-import { MessageForm } from '../../components/message-form'
+const HomeContent = dynamic(() => import('../../components/home-content'), { ssr: true })
+const MessageForm = dynamic(() => import('../../components/message-form'), { ssr: false })
 import { FileDownloadDialog } from '../../components/file-download-dialog'
 import { CounterDialog } from '../../components/counter-dialog'
 import { ErrorDialog } from '../../components/error-dialog'

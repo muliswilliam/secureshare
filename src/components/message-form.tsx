@@ -1,5 +1,5 @@
 import React from 'react'
-import * as z from 'zod'
+import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Paperclip, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -61,7 +61,7 @@ interface MessageFormProps {
   onSubmit?: (url: string) => void
 }
 
-export function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
+export default function MessageForm({ onSubmit: onFormSubmit }: MessageFormProps) {
   // state
   const [progress, setProgress] = React.useState(0)
   const [status, setStatus] = React.useState<string>('')

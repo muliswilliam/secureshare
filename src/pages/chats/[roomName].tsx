@@ -1,11 +1,14 @@
 import React from 'react'
+import dynamic from 'next/dynamic'
 import { ExternalE2EEKeyProvider, Room, RoomOptions } from 'livekit-client'
 import { LiveKitRoom, useToken } from '@livekit/components-react'
 import MainLayout from '../../layouts/main'
-import { HomeContent } from '../../components/home-content'
+
 import { useRouter } from 'next/router'
 import { LiveKitChat } from '../../components/livekit-chat'
 import { NewChatDialog } from '../../components/new-chat-dialog'
+const HomeContent = dynamic(() => import('../../components/home-content'), { ssr: true })
+
 
 export default function ChatPage() {
   const [isClient, setIsClient] = React.useState(false)

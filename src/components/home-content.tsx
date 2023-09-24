@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function HomeContent({ children }: { children: React.ReactNode }) {
+export default function HomeContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] lg:flex-row">
       <div className="flex justify-end order-2 w-full lg:order-1">

@@ -16,7 +16,7 @@ interface MessageProps {
   onClose: () => void
 }
 
-export function MessageDialog({ open, url, onClose }: MessageProps) {
+export default function MessageDialog({ open, url, onClose }: MessageProps) {
   // memos
   const message = React.useMemo(() => {
     return `Hey, this is a SecureShare link. It will self-destruct after viewing. Make sure to copy it before closing it: ${url}`
