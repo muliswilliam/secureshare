@@ -89,9 +89,9 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                 Encrypted chat
               </Button>
               <nav className={cn('hidden md:flex items-center', className)}>
-                {userId && (
+                {userId ? (
                   <MenuItem href="/dashboard/messages" label="Dashboard" />
-                )}
+                ) : null}
               </nav>
               {!userId ? (
                 <div className="flex items-center justify-between gap-6">
@@ -115,7 +115,7 @@ export function MainNav({ className, showDashboardMenu }: Props) {
               <ModeToggle />
             </div>
           </div>
-          {showDashboardMenu && (
+          {showDashboardMenu ? (
             <div className="-mb-0.5 flex h-12 items-center justify-start space-x-2 overflow-x-auto scrollbar-hide">
               {dashboardMenuItems.map((item) => (
                 <DashboardMenuItem
@@ -125,7 +125,7 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                 />
               ))}
             </div>
-          )}
+          ): null}
         </div>
       </div>
     </div>
