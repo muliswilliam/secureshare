@@ -17,7 +17,7 @@ import { generateRoomId, uint8ArrayToBase64UrlSafe } from '../shared/utils'
 import RandomGenerator from '../shared/random-generator'
 import Keychain from '../shared/keychain'
 
-export const NewChatDialog = ({ open, onClose }: { open: boolean, onClose: () => void }) => {
+export default function NewChatDialog ({ open, onClose }: { open: boolean, onClose: () => void }) {
   const router = useRouter()
   const { roomName } = router.query as { roomName: string | undefined }
   const form = useForm<{
