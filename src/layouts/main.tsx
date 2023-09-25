@@ -1,6 +1,6 @@
 import React from 'react'
 import { MainNav } from '@/components/nav'
-import { AppHead } from '../components/Head'
+import { AppHead } from '../components/head'
 import { ContentWrapper } from './content-wrapper'
 
 export default function MainLayout({

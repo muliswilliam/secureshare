@@ -7,7 +7,7 @@ import { getAuth } from '@clerk/nextjs/server'
 import prisma from '../../lib/prisma'
 
 // components
-import { AppHead } from '../../components/Head'
+import { AppHead } from '../../components/head'
 import { MainNav } from '../../components/nav'
 import { ContentWrapper } from '../../layouts/content-wrapper'
 import { Button } from '../../components/ui/button'
