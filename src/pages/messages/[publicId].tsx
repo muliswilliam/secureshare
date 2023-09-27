@@ -148,7 +148,7 @@ export default function MessagePage({ message, messageViewedEventId }: MessagePr
             setMessageType('text')
             const text = await decryptText(encryptionDetails.ct, encryptionKey)
             setDecryptedMessage(text)
-            console.log(messageViewedEventId)
+
             if (messageViewedEventId) {
               const ipAddressInfo = await getIpAddressInfo()
               await fetch('/api/msg/message-viewed', {
@@ -156,7 +156,8 @@ export default function MessagePage({ message, messageViewedEventId }: MessagePr
                 headers: {  'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   messageViewedEventId,
-                  ipAddressInfo
+                  ipAddressInfo,
+                  messageId: message.id
                 })
               })
             }

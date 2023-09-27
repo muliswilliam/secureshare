@@ -9,7 +9,8 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "prepare": "husky install",
-    "test": ""
+    "test": "",
+    "email": "email dev"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma"
@@ -30,6 +31,10 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.4",
     "@radix-ui/react-tooltip": "^1.0.6",
+    "@react-email/button": "0.0.10",
+    "@react-email/column": "0.0.7",
+    "@react-email/components": "^0.0.7",
+    "@react-email/html": "0.0.4",
     "@supabase/supabase-js": "^2.32.0",
     "@types/node": "20.4.1",
     "@types/react": "18.2.14",
@@ -53,10 +58,13 @@
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-email": "1.9.4",
     "react-hook-form": "^7.45.2",
+    "resend": "^1.1.0",
     "save-dev": "^0.0.1-security",
     "tailwind-merge": "^1.14.0",
     "typescript": "5.1.6",
+    "uainfer": "^0.5.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
