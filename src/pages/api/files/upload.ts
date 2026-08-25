@@ -1,11 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
 import { IncomingForm } from 'formidable'
-import { supabase } from '../../../lib/supabase'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { s3 } from '../../../lib/minio'
 import { createReadStream } from 'fs'
 import { once } from 'events'
 
-const bucketName = process.env.SUPABASE_BUCKET_NAME as string
+const bucketName = process.env.MINIO_BUCKET_NAME as string
 
 export const config = {
   api: {
@@ -42,18 +43,21 @@ export default async function handler(
     const files = parseResult[1]
     const file = Array.isArray(files.file) ? files.file[0] : files.file
     const buffer = await readFileWithStreams(file.filepath)
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(`${crypto.randomBytes(16).toString('hex')}-${file.originalFilename}`, buffer)
+    const key = `${crypto.randomBytes(16).toString('hex')}-${file.originalFilename}`
 
-    if (error) {
-      res.status(500).json({ message: 'Error uploading file', error })
-    }
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: buffer,
+        ContentType: 'application/octet-stream'
+      })
+    )
 
-    if (data) {
-      const result = supabase.storage.from(bucketName).getPublicUrl(data?.path)
-      res.status(200).json({ success: true, url: result.data.publicUrl })
-    }
+    res.status(200).json({
+      success: true,
+      url: `${process.env.MINIO_PUBLIC_URL}/${bucketName}/${key}`
+    })
   } catch (error) {
     res.status(400).json({ message: 'Error uploading file', error })
   }

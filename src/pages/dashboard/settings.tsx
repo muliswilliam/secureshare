@@ -1,5 +1,5 @@
 import React from 'react'
-import { AppHead } from "../../components/head";
+import { AppHead } from "../../components/Head";
 import { MainNav } from "../../components/nav";
 
 export default function Settings() {
