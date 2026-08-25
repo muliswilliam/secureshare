@@ -57,7 +57,6 @@ const formSchema = z.object({
 })
 
 interface MessageFormProps {
-  // eslint-disable-next-line no-unused-vars
   onSubmit?: (url: string) => void
 }
 

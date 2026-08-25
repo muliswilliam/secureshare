@@ -1,4 +1,3 @@
-const withPlugins = require('next-compose-plugins');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
@@ -6,16 +5,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    swcPlugins: [
-      [
-        'next-superjson-plugin',
-        {
-          excluded: [],
-        },
-      ],
-    ],
-  },
+  agentRules: false,
 }
 
-module.exports = withPlugins([withBundleAnalyzer], nextConfig);
+module.exports = withBundleAnalyzer(nextConfig);

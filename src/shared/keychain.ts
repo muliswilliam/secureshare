@@ -20,7 +20,7 @@ export default class Keychain {
   ): Promise<CryptoKey> {
     return await crypto.subtle.importKey(
       'raw',
-      rawKey,
+      rawKey as BufferSource,
       {
         name: this.ALGORITHM,
       },
@@ -33,11 +33,11 @@ export default class Keychain {
     return await crypto.subtle.encrypt(
       {
         name: Keychain.ALGORITHM,
-        iv,
+        iv: iv as BufferSource,
         tagLength: this.tagLengthInBytes * 8,
       },
       this.secretKey,
-      data
+      data as BufferSource
     )
   }
 
@@ -45,11 +45,11 @@ export default class Keychain {
     return await crypto.subtle.decrypt(
       {
         name: Keychain.ALGORITHM,
-        iv,
+        iv: iv as BufferSource,
         tagLength: this.tagLengthInBytes * 8,
       },
       this.secretKey,
-      data
+      data as BufferSource
     )
   }
 }

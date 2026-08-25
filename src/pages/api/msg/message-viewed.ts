@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { IpAddressInfo } from '../../../shared/types'
 import prisma from '../../../lib/prisma'
 import { Resend } from 'resend'
-import { clerkClient } from '@clerk/nextjs'
+import { clerkClient } from '@clerk/nextjs/server'
 import * as uaInfer from 'uainfer'
 import MessageOpenedEmail from '../../../../emails/message-opened'
 
@@ -54,7 +54,8 @@ export default async function handler(
 
     if (message?.userId) {
       // send message viewed email
-      const user = await clerkClient.users.getUser(message.userId)
+      const client = await clerkClient()
+      const user = await client.users.getUser(message.userId)
       const resend = new Resend(process.env.RESEND_API_KEY)
 
       await resend.sendEmail({

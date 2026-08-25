@@ -7,9 +7,8 @@ import { TokenResult } from '../../../shared/types'
 const apiKey = process.env.LIVEKIT_API_KEY
 const apiSecret = process.env.LIVEKIT_API_SECRET
 
-const createToken = (userInfo: AccessTokenOptions, grant: VideoGrant) => {
-  const at = new AccessToken(apiKey, apiSecret, userInfo)
-  at.ttl = '5m'
+const createToken = async (userInfo: AccessTokenOptions, grant: VideoGrant) => {
+  const at = new AccessToken(apiKey, apiSecret, { ...userInfo, ttl: '5m' })
   at.addGrant(grant)
   return at.toJwt()
 }
@@ -56,7 +55,7 @@ export default async function handler(
       canSubscribe: true
     }
 
-    const token = createToken({ identity, name, metadata }, grant)
+    const token = await createToken({ identity, name, metadata }, grant)
     const result: TokenResult = {
       identity,
       accessToken: token
