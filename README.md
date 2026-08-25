@@ -1,115 +1,38 @@
-# SecureShare
-
-SecureShare is a web app for sharing secrets - text messages and files - through self-destructing, single-view links, plus ephemeral end-to-end encrypted chat rooms for real-time conversations.
-
-The core idea is zero-knowledge sharing: encryption happens entirely in the browser using the Web Crypto API. The encryption key is generated client-side and is only ever placed in the URL fragment (`#...`), which browsers never send over the network. The server only ever stores ciphertext, so SecureShare itself cannot read the contents of a shared secret.
-
-## Key Features
-
-- **One-time secret links** - share a text message or a file (up to 10MB) behind a link that can only be viewed once before it self-destructs.
-- **Client-side AES-GCM encryption** - messages and files are encrypted in the browser before they ever leave the device; the decryption key travels in the URL fragment, never in a request body or query string.
-- **Auto-expiring secrets** - every secret is created with a TTL (1 day / 1 week / 1 month) and is swept for expiry by a scheduled job.
-- **View notifications** - signed-in senders can be notified by email (with device, location, and IP info) the moment their secret is opened.
-- **Ephemeral E2EE chat rooms** - spin up a temporary, end-to-end encrypted LiveKit room for real-time conversations instead of a static message.
-- **Dashboard** - signed-in users can see the messages they've sent, their status (pending / seen / expired), and manage account settings.
-- **Light/dark themes** and a responsive UI built on Radix + Tailwind.
-
-## Tech Stack
-
-| Layer | Technology |
-| --- | --- |
-| Framework | [Next.js 13](https://nextjs.org/) (Pages Router), [TypeScript](https://www.typescriptlang.org/) |
-| UI | [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/) primitives, [lucide-react](https://lucide.dev/) |
-| Forms & validation | [react-hook-form](https://react-hook-form.com/), [Zod](https://zod.dev/) |
-| Auth | [Clerk](https://clerk.com/) |
-| Database & ORM | Self-hosted [PostgreSQL](https://www.postgresql.org/), [Prisma](https://www.prisma.io/) |
-| File storage | Self-hosted [MinIO](https://min.io/) (S3-compatible) |
-| Encryption | Web Crypto API (AES-GCM), implemented in `src/shared/encrypt-decrypt.ts` / `src/shared/keychain.ts` |
-| Real-time chat | [LiveKit](https://livekit.io/) (`livekit-client`, `livekit-server-sdk`, E2EE) |
-| Email | [Resend](https://resend.com/) with [react-email](https://react.email/) templates |
-| Scheduled jobs | [Upstash QStash](https://upstash.com/docs/qstash) (signed webhook that expires secrets) |
-| Analytics | [Vercel Analytics](https://vercel.com/analytics) |
-| Tooling | ESLint, Prettier, Husky + lint-staged |
-
-## Architecture Overview
-
-- `src/pages/index.tsx` + `src/components/message-form.tsx` - encrypts a message/file client-side, uploads ciphertext to `/api/msg/new` (and encrypted file bytes to `/api/files/upload` / MinIO), then builds a share URL of the form `/messages/{publicId}#{secretKey}`.
-- `src/pages/messages/[publicId].tsx` - fetches ciphertext by `publicId`, reads the key out of the URL fragment, decrypts in the browser, and reports a "message viewed" event.
-- `src/pages/api/msg/*` - Next.js API routes for creating, fetching, and expiring messages, backed by Prisma models `Message`, `Event`, `IpAddressInfo`, and `User` (see `src/prisma/schema.prisma`).
-- `src/pages/api/msg/destroy.ts` - a QStash-signed endpoint that marks expired messages and logs `message_expired` events; QStash calls this on a schedule.
-- `src/pages/chats/[roomName].tsx` + `src/components/livekit-room.tsx` - creates a LiveKit room token via `/api/chat/livekit_token` and joins a room with E2EE enabled, using a key also carried in the URL fragment.
-- `src/middleware.ts` - Clerk auth middleware; most routes are public, with signed-in state only required for the dashboard.
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 20+ (repo is developed against Node v24, see `.nvmrc`)
-- A Postgres instance
-- A [MinIO](https://min.io/) instance (or any S3-compatible store) with a bucket set to public **read** access - the app fetches encrypted files directly from the browser with no auth
-- A [Clerk](https://clerk.com/) application
-- A [LiveKit](https://livekit.io/) project (Cloud or self-hosted) for the chat feature
-- A [Resend](https://resend.com/) API key for view-notification emails
-- An [Upstash QStash](https://upstash.com/) schedule pointed at `/api/msg/destroy` for secret expiry
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-| Variable | Description |
-| --- | --- |
-| `POSTGRES_PRISMA_URL` | Postgres connection string used by Prisma at runtime (can be the same value as below if there's no separate connection pooler in front of it) |
-| `POSTGRES_URL_NON_POOLING` | Direct Postgres connection string, used for migrations |
-| `MINIO_ENDPOINT` | URL the app uses to reach MinIO (e.g. `http://minio:9000` on an internal network) |
-| `MINIO_ACCESS_KEY` | MinIO access key |
-| `MINIO_SECRET_KEY` | MinIO secret key |
-| `MINIO_BUCKET_NAME` | MinIO bucket used for encrypted file uploads (must be public-read) |
-| `MINIO_PUBLIC_URL` | Publicly reachable base URL for MinIO, used to build download links returned to the browser (may differ from `MINIO_ENDPOINT` if MinIO sits behind a different public domain) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
-| `CLERK_SECRET_KEY` | Clerk secret key |
-| `NEXT_PUBLIC_LIVEKIT_URL` | WebSocket URL of your LiveKit server |
-| `LIVEKIT_API_KEY` | LiveKit API key |
-| `LIVEKIT_API_SECRET` | LiveKit API secret |
-| `RESEND_API_KEY` | Resend API key for sending "message opened" emails |
-| `QSTASH_CURRENT_SIGNING_KEY` | Used to verify signed requests from QStash to `/api/msg/destroy` |
-| `QSTASH_NEXT_SIGNING_KEY` | Secondary QStash signing key (used during key rotation) |
-
-`NEXT_PUBLIC_*` variables are inlined at build time, so they must be set before running `npm run build`.
-
-### Local Development
-
-A `docker-compose.yml` is included to run a local Postgres + MinIO stack:
+First, run the development server:
 
 ```bash
-docker compose up -d
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
 ```
 
-Then create and expose the bucket once (via the [`mc`](https://min.io/docs/minio/linux/reference/minio-mc.html) CLI, or the MinIO Console at `http://localhost:9001`):
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-mc alias set local http://localhost:9000 minioadmin minioadmin
-mc mb local/secureshare
-mc anonymous set download local/secureshare
-```
+You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
-### Install & Run
+[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
 
-```bash
-npm install
-npx prisma migrate deploy   # apply the schema in src/prisma/schema.prisma
-npm run dev                 # http://localhost:3005
-```
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-### Scripts
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the dev server on port 3005 |
-| `npm run build` | Production build (runs `prisma generate` first via `postinstall`) |
-| `npm run start` | Start the production server |
-| `npm run lint` | Run ESLint |
-| `npm run email` | Preview `react-email` templates locally |
+## Learn More
 
-## Deployment
+To learn more about Next.js, take a look at the following resources:
 
-The project builds as a standard Next.js app and can be deployed anywhere Node.js is available, including [Vercel](https://vercel.com/) or a self-hosted [Dokploy](https://dokploy.com/) instance. See all required environment variables above - `NEXT_PUBLIC_*` values must be present at build time.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
