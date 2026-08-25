@@ -15,9 +15,9 @@ export const config = {
 
 async function readFileWithStreams(filePath: string): Promise<Buffer> {
   const readStream = createReadStream(filePath)
-  const chunks: Uint8Array[] = []
-  readStream.on('data', (chunk: Uint8Array) => {
-    chunks.push(chunk)
+  const chunks: Buffer[] = []
+  readStream.on('data', (chunk: string | Buffer) => {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
   })
   readStream.on('error', (err) => {
     // Reject on stream error
@@ -41,6 +41,9 @@ export default async function handler(
     const parseResult = await form.parse(req)
     const files = parseResult[1]
     const file = Array.isArray(files.file) ? files.file[0] : files.file
+    if (!file) {
+      return res.status(400).json({ message: 'No file provided' })
+    }
     const buffer = await readFileWithStreams(file.filepath)
     const { data, error } = await supabase.storage
       .from(bucketName)

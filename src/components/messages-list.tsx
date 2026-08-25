@@ -97,7 +97,7 @@ export const MessagesList = ({
     messages.forEach((msg) => {
       events.forEach((e) => {
         const { eventData } = e
-        const { publicId } = eventData as Message
+        const { publicId } = eventData as unknown as Message
         if (publicId === msg.publicId) {
           if (map[msg.publicId]) {
             map[msg.publicId].push(e)

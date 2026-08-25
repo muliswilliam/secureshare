@@ -22,6 +22,7 @@ export default function App({ Component, pageProps }: AppProps) {
           publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
+          afterSignOutUrl="/"
           appearance={{
             layout: {
               logoPlacement: 'inside',

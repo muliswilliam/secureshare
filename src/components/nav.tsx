@@ -110,7 +110,7 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                   </Button>
                 </div>
               ) : (
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
               )}
               <ModeToggle />
             </div>
