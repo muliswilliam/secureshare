@@ -20,6 +20,10 @@ RUN npm run build
 FROM base AS web
 ENV NODE_ENV=production
 ENV PORT=3000
+# Docker sets HOSTNAME to the container ID; Next's standalone server.js binds to
+# process.env.HOSTNAME instead of all interfaces when it's set, which breaks
+# both the healthcheck below and Traefik's routing to this container.
+ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
