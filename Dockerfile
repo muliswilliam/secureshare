@@ -27,13 +27,20 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+# The standalone output only bundles node_modules actually imported at runtime,
+# which excludes the prisma CLI; copy the full node_modules so `prisma migrate
+# deploy` below can run without a separate migration step in CI.
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src/prisma ./src/prisma
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=src/prisma/schema.prisma && node server.js"]
 
 # Worker target: BullMQ expiry-sweep worker (persistent process, not compatible with serverless)
 FROM deps AS worker
 ENV NODE_ENV=production
 COPY . .
-CMD ["npx", "tsx", "src/worker.ts"]
+# Prisma's migrate deploy takes an advisory lock, so it's safe for both the web
+# and worker containers to run it on boot even if they start concurrently.
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=src/prisma/schema.prisma && npx tsx src/worker.ts"]
