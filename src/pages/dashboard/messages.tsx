@@ -1,10 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import { getAuth } from '@clerk/nextjs/server'
 
 // utils
 import prisma from '../../lib/prisma'
+import { getServerSession } from '../../lib/auth'
 
 // components
 import { AppHead } from '../../components/head'
@@ -23,7 +23,13 @@ type MessagesPageProps = {
 }
 
 export const getServerSideProps = (async ({ req }) => {
-  const { userId } = getAuth(req)
+  const session = await getServerSession(req.headers)
+
+  if (!session) {
+    return { redirect: { destination: '/sign-in', permanent: false } }
+  }
+
+  const userId = session.user.id
 
   const messages = await prisma.message.findMany({
     where: {
@@ -43,7 +49,9 @@ export const getServerSideProps = (async ({ req }) => {
     }
   })
 
-  return { props: { messages, events } }
+  return {
+    props: JSON.parse(JSON.stringify({ messages, events })) as MessagesPageProps
+  }
 }) satisfies GetServerSideProps<MessagesPageProps>
 
 export default function Messages({

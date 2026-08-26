@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: secureshare
+      POSTGRES_USER: secureshare
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secureshare}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U secureshare']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
+
+  # Local/dev/test stand-in for Cloudflare R2 (both are S3-compatible). Production
+  # points STORAGE_ENDPOINT at real R2 instead of running this service.
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - miniodata:/data
+
+  app:
+    build:
+      context: .
+      target: web
+      args:
+        # Baked into the compiled bundle at build time (see Dockerfile); setting it
+        # under `environment:` below has no effect once the image is built.
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PRISMA_URL: postgres://secureshare:${POSTGRES_PASSWORD:-secureshare}@postgres:5432/secureshare
+      POSTGRES_URL_NON_POOLING: postgres://secureshare:${POSTGRES_PASSWORD:-secureshare}@postgres:5432/secureshare
+      REDIS_URL: redis://redis:6379
+      # Server-side S3 calls happen over the compose network; STORAGE_PUBLIC_URL
+      # (from .env) stays host-reachable since browsers fetch it directly.
+      STORAGE_ENDPOINT: http://minio:9000
+
+  worker:
+    build:
+      context: .
+      target: worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PRISMA_URL: postgres://secureshare:${POSTGRES_PASSWORD:-secureshare}@postgres:5432/secureshare
+      POSTGRES_URL_NON_POOLING: postgres://secureshare:${POSTGRES_PASSWORD:-secureshare}@postgres:5432/secureshare
+      REDIS_URL: redis://redis:6379
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
