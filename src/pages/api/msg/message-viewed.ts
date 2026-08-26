@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { IpAddressInfo } from '../../../shared/types'
 import prisma from '../../../lib/prisma'
 import { Resend } from 'resend'
-import { clerkClient } from '@clerk/nextjs/server'
+import { getUserEmailById } from '../../../lib/auth'
 import * as uaInfer from 'uainfer'
 import MessageOpenedEmail from '../../../../emails/message-opened'
 
@@ -54,13 +54,17 @@ export default async function handler(
 
     if (message?.userId) {
       // send message viewed email
-      const client = await clerkClient()
-      const user = await client.users.getUser(message.userId)
+      const email = await getUserEmailById(message.userId)
+
+      if (!email) {
+        return res.status(200).json({ success: true })
+      }
+
       const resend = new Resend(process.env.RESEND_API_KEY)
 
       await resend.sendEmail({
         from: 'Secureshare <system@secureshare.sh>',
-        to: user.emailAddresses[0].emailAddress,
+        to: email,
         subject: 'Message Opened',
         react: MessageOpenedEmail({
           openingDate: new Date(),

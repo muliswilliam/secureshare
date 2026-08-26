@@ -2,9 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
 import { Prisma } from '@prisma/client'
-import { getAuth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import prisma from '../../../lib/prisma'
+import { getServerSession } from '../../../lib/auth'
 import { EventType } from '../../../shared/enums'
 import { getClientInfo } from '../../../shared/utils'
 import { IpAddressInfo } from '../../../shared/types'
@@ -37,12 +37,12 @@ export default async function handler(
         error: { message: 'Invalid request', errors }
       })
     }
-    const session = getAuth(req)
+    const session = await getServerSession(req.headers)
     const { encryptionDetails, expiresAt, ipAddressInfo } = reqBody.data
     const publicId = crypto.randomBytes(16).toString('hex')
     const result = await prisma.message.create({
       data: {
-        userId: session?.userId,
+        userId: session?.user.id,
         publicId,
         body: encryptionDetails,
         expiresAt: expiresAt,
@@ -52,7 +52,7 @@ export default async function handler(
 
     // add message_created event
     const messageCreatedEvent = {
-      userId: session?.userId ?? undefined,
+      userId: session?.user.id ?? undefined,
       publicId,
       ...getClientInfo(req)
     }

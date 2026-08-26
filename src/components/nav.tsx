@@ -1,5 +1,4 @@
 import React from 'react'
-import { UserButton, useAuth } from '@clerk/nextjs'
 import Link from 'next/link'
 import { twMerge } from 'tailwind-merge'
 import { useRouter } from 'next/router'
@@ -7,10 +6,12 @@ import { useRouter } from 'next/router'
 // utils
 import { cn } from '@/lib/utils'
 import { generateRoomId } from '../shared/utils'
+import { useSession } from '@/lib/auth-client'
 
 // components
 import { Button } from '@/components/ui/button'
 import { ModeToggle } from '@/components/mode-toggle'
+import { UserMenu } from '@/components/user-menu'
 
 const MenuItem = ({ label, href }: { label: string; href: string }) => {
   return (
@@ -52,7 +53,8 @@ interface Props {
 
 export function MainNav({ className, showDashboardMenu }: Props) {
   // hooks
-  const { userId } = useAuth()
+  const { data: session } = useSession()
+  const userId = session?.user.id
   const router = useRouter()
 
   const dashboardMenuItems: DashboardOption[] = [
@@ -110,7 +112,7 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                   </Button>
                 </div>
               ) : (
-                <UserButton />
+                <UserMenu email={session?.user.email ?? ''} />
               )}
               <ModeToggle />
             </div>

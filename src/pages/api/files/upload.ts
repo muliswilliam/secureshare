@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
 import { IncomingForm } from 'formidable'
-import { supabase } from '../../../lib/supabase'
+import { uploadFile } from '../../../lib/storage'
 import { createReadStream } from 'fs'
 import { once } from 'events'
-
-const bucketName = process.env.SUPABASE_BUCKET_NAME as string
 
 export const config = {
   api: {
@@ -45,18 +43,10 @@ export default async function handler(
       return res.status(400).json({ message: 'No file provided' })
     }
     const buffer = await readFileWithStreams(file.filepath)
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(`${crypto.randomBytes(16).toString('hex')}-${file.originalFilename}`, buffer)
+    const key = `${crypto.randomBytes(16).toString('hex')}-${file.originalFilename}`
+    const url = await uploadFile(buffer, key)
 
-    if (error) {
-      res.status(500).json({ message: 'Error uploading file', error })
-    }
-
-    if (data) {
-      const result = supabase.storage.from(bucketName).getPublicUrl(data?.path)
-      res.status(200).json({ success: true, url: result.data.publicUrl })
-    }
+    res.status(200).json({ success: true, url })
   } catch (error) {
     res.status(400).json({ message: 'Error uploading file', error })
   }

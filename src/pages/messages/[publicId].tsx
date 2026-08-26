@@ -3,12 +3,12 @@ import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { GetServerSideProps } from 'next'
 import { Message, Prisma } from '@prisma/client'
-import { getAuth } from '@clerk/nextjs/server'
 
 // utils
 import { EncryptionDetails } from '../../shared/types'
 import { base64UrlSafeToUint8Array, getClientInfo, getIpAddressInfo } from '../../shared/utils'
 import prisma from '../../lib/prisma'
+import { getServerSession } from '../../lib/auth'
 import { EventType, MessageStatus } from '../../shared/enums'
 import { decryptFile, decryptText } from '../../shared/encrypt-decrypt'
 
@@ -52,9 +52,9 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
   })
 
   // log message_viewed
-  const session = getAuth(req)
+  const session = await getServerSession(req.headers)
   const messageViewedEvent = {
-    userId: session?.userId ?? undefined,
+    userId: session?.user.id ?? undefined,
     publicId: message.publicId,
     ...getClientInfo(req)
   }
@@ -72,14 +72,14 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
   return {
     props: {
       messageViewedEventId: result.id,
-      message
+      message: JSON.parse(JSON.stringify(message))
     }
   }
 }
 
 
 interface MessageProps {
-  message: Message | null,
+  message: Omit<Message, 'expiresAt' | 'createdAt'> | null,
   messageViewedEventId: number | null
 }
 

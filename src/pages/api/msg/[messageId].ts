@@ -1,9 +1,9 @@
 // write a nextjs endpoint that updates a message. check auth first to make sure the user is allowed to update the message.
 // if the message is being updated to expired, then send a message to the user who created the message.
 
-import { getAuth } from '@clerk/nextjs/server'
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '../../../lib/prisma'
+import { getServerSession } from '../../../lib/auth'
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,7 +14,7 @@ export default async function handler(
     // get the message id from the request params
     const { messageId } = req.query
     if (method === 'PUT' || method === 'DELETE') {
-      const session = getAuth(req)
+      const session = await getServerSession(req.headers)
       const id = Number(messageId)
       const update = req.body
       const message = await prisma.message.findUnique({
@@ -27,7 +27,7 @@ export default async function handler(
         })
       }
 
-      if (message.userId !== session?.userId) {
+      if (message.userId !== session?.user.id) {
         return res.status(403).json({
           error: { message: 'Unauthorized' }
         })
