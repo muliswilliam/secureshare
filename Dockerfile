@@ -9,6 +9,10 @@ COPY src/prisma ./src/prisma
 RUN npm ci
 
 FROM deps AS builder
+# Next.js inlines NEXT_PUBLIC_* vars into the compiled output at build time, so it
+# must be supplied as a build arg here rather than as a runtime environment variable.
+ARG NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 COPY . .
 RUN npm run build
 

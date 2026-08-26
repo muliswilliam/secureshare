@@ -43,6 +43,10 @@ services:
     build:
       context: .
       target: web
+      args:
+        # Baked into the compiled bundle at build time (see Dockerfile); setting it
+        # under `environment:` below has no effect once the image is built.
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -58,7 +62,6 @@ services:
       # Server-side S3 calls happen over the compose network; STORAGE_PUBLIC_URL
       # (from .env) stays host-reachable since browsers fetch it directly.
       STORAGE_ENDPOINT: http://minio:9000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
 
   worker:
     build:

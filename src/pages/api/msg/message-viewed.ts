@@ -23,7 +23,7 @@ export default async function handler(
     const { method } = req
     if (method !== 'POST') {
       res.setHeader('Allow', ['GET', 'POST'])
-      res.status(405).json({
+      return res.status(405).json({
         error: { message: `Method ${method} Not Allowed` }
       })
     }

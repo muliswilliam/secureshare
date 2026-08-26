@@ -53,7 +53,7 @@ interface Props {
 
 export function MainNav({ className, showDashboardMenu }: Props) {
   // hooks
-  const { data: session } = useSession()
+  const { data: session, isPending: isSessionPending } = useSession()
   const userId = session?.user.id
   const router = useRouter()
 
@@ -95,7 +95,9 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                   <MenuItem href="/dashboard/messages" label="Dashboard" />
                 ) : null}
               </nav>
-              {!userId ? (
+              {isSessionPending ? null : userId ? (
+                <UserMenu email={session?.user.email ?? ''} />
+              ) : (
                 <div className="flex items-center justify-between gap-6">
                   <Button
                     variant="outline"
@@ -111,8 +113,6 @@ export function MainNav({ className, showDashboardMenu }: Props) {
                     <Link href="/sign-up">Sign Up</Link>
                   </Button>
                 </div>
-              ) : (
-                <UserMenu email={session?.user.email ?? ''} />
               )}
               <ModeToggle />
             </div>

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { Message, Prisma } from '@prisma/client'
 
 import prisma from '../lib/prisma'
 import { EventType, MessageStatus } from '../shared/enums'
@@ -12,29 +12,19 @@ const unknownClientInfo: ClientInfo = {
 
 export async function sweepExpiredMessages(clientInfo: ClientInfo = unknownClientInfo) {
   const currentTime = new Date()
-  const expiredMessagesFilter = {
-    expiresAt: {
-      lt: currentTime
-    },
-    status: {
-      not: MessageStatus.EXPIRED
-    }
-  }
 
-  const messages = await prisma.message.findMany({
-    where: expiredMessagesFilter
-  })
+  // UPDATE ... RETURNING atomically claims and expires rows in one statement, so
+  // concurrent sweeps can never both observe the same message as still-pending.
+  const messages = await prisma.$queryRaw<Message[]>`
+    UPDATE "Message"
+    SET status = ${MessageStatus.EXPIRED}
+    WHERE "expiresAt" < ${currentTime} AND status != ${MessageStatus.EXPIRED}
+    RETURNING *
+  `
 
   if (messages.length === 0) {
     return { expiredCount: 0 }
   }
-
-  await prisma.message.updateMany({
-    where: expiredMessagesFilter,
-    data: {
-      status: MessageStatus.EXPIRED
-    }
-  })
 
   const events = messages.map((message) => ({
     eventType: EventType.MessageExpired,

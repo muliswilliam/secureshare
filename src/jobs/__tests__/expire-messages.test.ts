@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MessageStatus, EventType } from '../../shared/enums'
+import { EventType } from '../../shared/enums'
 
-const { findManyMock, updateManyMock, createManyMock } = vi.hoisted(() => ({
-  findManyMock: vi.fn(),
-  updateManyMock: vi.fn(),
+const { queryRawMock, createManyMock } = vi.hoisted(() => ({
+  queryRawMock: vi.fn(),
   createManyMock: vi.fn()
 }))
 
 vi.mock('../../lib/prisma', () => ({
   default: {
-    message: { findMany: findManyMock, updateMany: updateManyMock },
+    $queryRaw: queryRawMock,
     event: { createMany: createManyMock }
   }
 }))
@@ -18,29 +17,21 @@ import { sweepExpiredMessages } from '../expire-messages'
 
 describe('sweepExpiredMessages', () => {
   beforeEach(() => {
-    findManyMock.mockReset()
-    updateManyMock.mockReset()
+    queryRawMock.mockReset()
     createManyMock.mockReset()
   })
 
   it('marks only past-due, not-already-expired messages as expired and logs one event each', async () => {
-    findManyMock.mockResolvedValue([
+    queryRawMock.mockResolvedValue([
       { id: 1, publicId: 'pub-1' },
       { id: 2, publicId: 'pub-2' }
     ])
-    updateManyMock.mockResolvedValue({ count: 2 })
     createManyMock.mockResolvedValue({ count: 2 })
 
     const result = await sweepExpiredMessages()
 
     expect(result.expiredCount).toBe(2)
-
-    const [findManyArgs] = findManyMock.mock.calls[0]
-    expect(findManyArgs.where.status.not).toBe(MessageStatus.EXPIRED)
-    expect(findManyArgs.where.expiresAt).toHaveProperty('lt')
-
-    const [updateManyArgs] = updateManyMock.mock.calls[0]
-    expect(updateManyArgs.data.status).toBe(MessageStatus.EXPIRED)
+    expect(queryRawMock).toHaveBeenCalledTimes(1)
 
     const [createManyArgs] = createManyMock.mock.calls[0]
     expect(createManyArgs.data).toHaveLength(2)
@@ -50,12 +41,11 @@ describe('sweepExpiredMessages', () => {
   })
 
   it('does nothing when there are no expired messages', async () => {
-    findManyMock.mockResolvedValue([])
+    queryRawMock.mockResolvedValue([])
 
     const result = await sweepExpiredMessages()
 
     expect(result.expiredCount).toBe(0)
-    expect(updateManyMock).not.toHaveBeenCalled()
     expect(createManyMock).not.toHaveBeenCalled()
   })
 })
